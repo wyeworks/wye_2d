@@ -1,4 +1,4 @@
-use crate::Position;
+use crate::positioning::Position;
 
 use super::desk::*;
 use super::player::*;

@@ -2,7 +2,8 @@ use ggez::event::*;
 use ggez::graphics::*;
 use ggez::*;
 
-use crate::{clamp, Position};
+use crate::positioning::*;
+
 
 const PLAYER_SPEED: f32 = 200.0;
 const PLAYER_W: f32 = 25.0;
@@ -52,19 +53,10 @@ impl Player {
             _ => (),
         }
 
-        let (screen_w, screen_h) = graphics::drawable_size(ctx);
-
-        // Limit positioning to vertical screen size
-        clamp(
-            &mut self.position.y,
-            PLAYER_H_HALF,
-            screen_h - PLAYER_H_HALF,
-        );
-        // Limit positioning to horizontal screen size
-        clamp(
-            &mut self.position.x,
-            PLAYER_W_HALF,
-            screen_w - PLAYER_W_HALF,
+        clamp_object(
+            &mut self.position,
+            (PLAYER_W, PLAYER_H),
+            Position::from_f32(graphics::drawable_size(ctx)),
         );
     }
 }

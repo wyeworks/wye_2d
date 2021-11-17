@@ -1,7 +1,6 @@
+use crate::positioning::Position;
 use ggez::graphics::*;
 use ggez::*;
-
-use crate::Position;
 
 const DESK_H: f32 = 70.0;
 const DESK_W: f32 = 150.0;

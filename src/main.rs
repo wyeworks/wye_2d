@@ -5,13 +5,9 @@ pub mod entities {
     pub mod player;
 }
 
-use entities::map::*;
+pub mod positioning;
 
-// Position of the elements in the screen, this will be used by all entities
-pub struct Position {
-    x: f32,
-    y: f32,
-}
+use entities::map::*;
 
 // The main game state
 struct State {
@@ -50,13 +46,4 @@ fn main() -> GameResult {
 
     let state = State::new();
     event::run(ctx, event_loop, state);
-}
-
-// We use clamping to limit position to a given area. Clamping merely moves the point to the nearest available value
-fn clamp(value: &mut f32, low: f32, high: f32) {
-    if *value < low {
-        *value = low;
-    } else if *value > high {
-        *value = high;
-    }
 }
