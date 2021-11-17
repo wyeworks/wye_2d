@@ -3,6 +3,7 @@ use crate::Position;
 use super::desk::*;
 use super::player::*;
 use ggez::*;
+use ggez::{event::*, input::keyboard};
 pub struct Map {
     player: Player,
     desks: Vec<Desk>,
@@ -24,15 +25,24 @@ impl Map {
     }
 
     pub fn update(&mut self, ctx: &mut Context) -> GameResult {
+        let player_mov_keys = [KeyCode::Up, KeyCode::Down, KeyCode::Left, KeyCode::Right];
+        for key in player_mov_keys {
+            if keyboard::is_key_pressed(ctx, key) {
+                self.player.walk(key, ctx);
+            }
+        }
+
         Ok(())
     }
     pub fn draw(&mut self, ctx: &mut Context) -> GameResult {
-        graphics::clear(ctx, graphics::Color::BLACK);
+        graphics::clear(ctx, graphics::Color::from_rgb(130, 90, 44));
 
         // We iterate over each desk in the map and tell them to draw themselves
         for desk in self.desks.iter_mut() {
             desk.draw(ctx)?;
         }
+
+        self.player.draw(ctx)?;
 
         Ok(())
     }
