@@ -1,4 +1,4 @@
-use crate::positioning::Position;
+use crate::positioning::positioning::*;
 
 use super::desk::*;
 use super::player::*;
@@ -13,9 +13,7 @@ impl Map {
     // Creates a new map, with the inital positions of its objects (could be on each objects' ::new)
     pub fn new() -> Self {
         let mut initial_desks = Vec::new();
-        let first_desk = Desk {
-            position: Position { x: 200.0, y: 200.0 },
-        };
+        let first_desk = Desk::new(Position { x: 200.0, y: 200.0 });
         initial_desks.push(first_desk);
 
         Map {

@@ -1,20 +1,30 @@
-use crate::positioning::Position;
 use ggez::graphics::*;
 use ggez::*;
 
+use crate::positioning::positioning::*;
+
 const DESK_H: f32 = 70.0;
 const DESK_W: f32 = 150.0;
-const DESK_H_HALF: f32 = DESK_H * 0.5;
-const DESK_W_HALF: f32 = DESK_W * 0.5;
 pub struct Desk {
     pub position: Position,
+    pub size: Size,
 }
 
 impl Desk {
+    pub fn new(position: Position) -> Self {
+        Desk {
+            position,
+            size: Size {
+                width: DESK_W,
+                height: DESK_H,
+            },
+        }
+    }
+
     pub fn draw(&mut self, ctx: &mut Context) -> GameResult {
         let rect = graphics::Rect::new(
-            self.position.x - DESK_W_HALF,
-            self.position.y - DESK_H_HALF,
+            self.position.x - self.size.w_half(),
+            self.position.y - self.size.h_half(),
             DESK_W,
             DESK_H,
         );

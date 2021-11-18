@@ -5,7 +5,9 @@ pub mod entities {
     pub mod player;
 }
 
-pub mod positioning;
+pub mod positioning {
+    pub mod positioning;
+}
 
 use entities::map::*;
 

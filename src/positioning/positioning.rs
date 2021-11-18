@@ -16,20 +16,18 @@ impl Position {
 // We use clamping to limit position to a given area. Clamping merely moves the point to the nearest available value
 pub fn clamp_object(
     object_position: &mut Position,
-    object_size: (f32, f32),
-    area_coordinates: Position,
+    object_size: &Size,
+    area_coordinates: &Position,
 ) {
-    let object_w_half = object_size.0 * 0.5;
-    let object_h_half = object_size.1 * 0.5;
     clamp(
         &mut object_position.x,
-        object_size.0 * 0.5,
-        area_coordinates.x - object_w_half,
+        object_size.w_half(),
+        area_coordinates.x - object_size.w_half(),
     );
     clamp(
         &mut object_position.y,
-        object_h_half,
-        area_coordinates.y - object_h_half,
+        object_size.h_half(),
+        area_coordinates.y - object_size.h_half(),
     );
 }
 
@@ -38,5 +36,19 @@ fn clamp(value: &mut f32, low: f32, high: f32) {
         *value = low;
     } else if *value > high {
         *value = high;
+    }
+}
+
+pub struct Size {
+    pub width: f32,
+    pub height: f32,
+}
+
+impl Size {
+    pub fn h_half(&self) -> f32 {
+        self.height * 0.5
+    }
+    pub fn w_half(&self) -> f32 {
+        self.width * 0.5
     }
 }

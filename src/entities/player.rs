@@ -2,32 +2,33 @@ use ggez::event::*;
 use ggez::graphics::*;
 use ggez::*;
 
-use crate::positioning::*;
-
+use crate::positioning::positioning::*;
 
 const PLAYER_SPEED: f32 = 200.0;
 const PLAYER_W: f32 = 25.0;
 const PLAYER_H: f32 = 25.0;
-const PLAYER_W_HALF: f32 = PLAYER_W * 0.5;
-const PLAYER_H_HALF: f32 = PLAYER_H * 0.5;
-
 pub struct Player {
     pub position: Position,
+    pub size: Size,
 }
 
 impl Player {
     pub fn new() -> Self {
         Player {
             position: Position { x: 200.0, y: 300.0 },
+            size: Size {
+                width: PLAYER_W,
+                height: PLAYER_H,
+            },
         }
     }
 
     pub fn draw(&mut self, ctx: &mut Context) -> GameResult {
         let rect = graphics::Rect::new(
-            self.position.x - PLAYER_W_HALF,
-            self.position.y - PLAYER_H_HALF,
-            PLAYER_W,
-            PLAYER_H,
+            self.position.x - self.size.w_half(),
+            self.position.y - self.size.h_half(),
+            self.size.width,
+            self.size.height,
         );
 
         let rect_mesh = graphics::Mesh::new_rectangle(
@@ -55,8 +56,8 @@ impl Player {
 
         clamp_object(
             &mut self.position,
-            (PLAYER_W, PLAYER_H),
-            Position::from_f32(graphics::drawable_size(ctx)),
+            &self.size,
+            &Position::from_f32(graphics::drawable_size(ctx)),
         );
     }
 }
