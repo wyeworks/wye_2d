@@ -11,6 +11,23 @@ impl Position {
             y: tuple.1,
         }
     }
+
+    pub fn clamp_self(
+        &mut self,
+        object_size: &Size,
+        area_coordinates: &Position,
+    ) {
+        clamp(
+            &mut self.x,
+            object_size.w_half(),
+            area_coordinates.x - object_size.w_half(),
+        );
+        clamp(
+            &mut self.y,
+            object_size.h_half(),
+            area_coordinates.y - object_size.h_half(),
+        );
+    }
 }
 
 // We use clamping to limit position to a given area. Clamping merely moves the point to the nearest available value

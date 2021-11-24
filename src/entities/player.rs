@@ -54,8 +54,7 @@ impl Player {
             _ => (),
         }
 
-        clamp_object(
-            &mut self.position,
+        self.position.clamp_self(
             &self.size,
             &Position::from_f32(graphics::drawable_size(ctx)),
         );
