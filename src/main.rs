@@ -5,13 +5,11 @@ pub mod entities {
     pub mod player;
 }
 
-use entities::map::*;
-
-// Position of the elements in the screen, this will be used by all entities
-pub struct Position {
-    x: f32,
-    y: f32,
+pub mod positioning {
+    pub mod positioning;
 }
+
+use entities::map::*;
 
 // The main game state
 struct State {
@@ -26,10 +24,13 @@ impl State {
 
 impl ggez::event::EventHandler<GameError> for State {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
+        self.map.update(ctx)?;
         Ok(())
     }
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
         self.map.draw(ctx)?;
+
+        graphics::present(ctx)?;
         Ok(())
     }
 }
@@ -39,6 +40,7 @@ fn main() -> GameResult {
 
     let (ctx, event_loop) = ContextBuilder::new("wye_2D", "rust_team")
         .default_conf(c)
+        .window_mode(ggez::conf::WindowMode::default().dimensions(1300.0, 800.0))
         .build()
         .unwrap();
 
