@@ -1,4 +1,3 @@
-
 use ggez::{event::KeyCode, graphics, Context};
 
 #[derive(Copy, Clone)]
@@ -54,7 +53,6 @@ fn clamp(value: &mut f32, low: f32, high: f32) {
         *value = high;
     }
 }
-
 
 #[derive(Copy, Clone)]
 pub struct Size {

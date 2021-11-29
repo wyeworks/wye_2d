@@ -3,7 +3,6 @@ use ggez::*;
 
 use crate::positioning::positioning::*;
 
-
 const PLAYER_W: f32 = 25.0;
 const PLAYER_H: f32 = 25.0;
 pub struct Player {
@@ -43,5 +42,4 @@ impl Player {
 
         Ok(())
     }
-
 }
