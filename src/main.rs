@@ -6,6 +6,7 @@ pub mod entities {
 }
 
 pub mod positioning {
+    pub mod collision;
     pub mod positioning;
 }
 

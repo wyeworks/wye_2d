@@ -1,4 +1,6 @@
-// Position of the elements in the screen, this will be used by all entities
+use ggez::{event::KeyCode, graphics, Context};
+
+#[derive(Copy, Clone)]
 pub struct Position {
     pub x: f32,
     pub y: f32,
@@ -12,11 +14,7 @@ impl Position {
         }
     }
 
-    pub fn clamp_self(
-        &mut self,
-        object_size: &Size,
-        area_coordinates: &Position,
-    ) {
+    pub fn clamp_self(&mut self, object_size: &Size, area_coordinates: &Position) {
         clamp(
             &mut self.x,
             object_size.w_half(),
@@ -56,6 +54,7 @@ fn clamp(value: &mut f32, low: f32, high: f32) {
     }
 }
 
+#[derive(Copy, Clone)]
 pub struct Size {
     pub width: f32,
     pub height: f32,
@@ -67,5 +66,48 @@ impl Size {
     }
     pub fn w_half(&self) -> f32 {
         self.width * 0.5
+    }
+}
+
+pub trait Sizable {
+    fn get_size(&self) -> &Size;
+    fn get_position(&self) -> &Position;
+}
+
+#[derive(Copy, Clone)]
+
+pub struct Body {
+    pub position: Position,
+    pub size: Size,
+    pub speed: f32,
+}
+
+impl Sizable for Body {
+    fn get_size(&self) -> &Size {
+        &self.size
+    }
+
+    fn get_position(&self) -> &Position {
+        &self.position
+    }
+}
+
+impl Body {
+    pub fn update_position(&mut self, direction: KeyCode, ctx: &mut Context) {
+
+        let dt = ggez::timer::delta(ctx).as_secs_f32();
+        match direction {
+            KeyCode::Up => self.position.y -= self.speed * dt,
+            KeyCode::Down => self.position.y += self.speed * dt,
+            KeyCode::Left => self.position.x -= self.speed * dt,
+            KeyCode::Right => self.position.x += self.speed * dt,
+            _ => (),
+        }
+
+        self.position.clamp_self(
+            &self.size,
+            &Position::from_f32(graphics::drawable_size(ctx)),
+        );
+
     }
 }
