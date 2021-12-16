@@ -76,13 +76,14 @@ pub trait Sizable {
 
 #[derive(Copy, Clone)]
 
-pub struct Body {
+pub struct Physics {
     pub position: Position,
     pub size: Size,
     pub speed: f32,
+    pub color: graphics::Color,
 }
 
-impl Sizable for Body {
+impl Sizable for Physics {
     fn get_size(&self) -> &Size {
         &self.size
     }
@@ -92,9 +93,18 @@ impl Sizable for Body {
     }
 }
 
-impl Body {
-    pub fn update_position(&mut self, direction: KeyCode, ctx: &mut Context) {
 
+impl Physics {
+    pub fn new(position: Position, size: Size, speed: f32, color: graphics::Color) -> Self {
+        Physics {
+            position,
+            size,
+            speed,
+            color,
+        }
+    }
+
+    pub fn update_position(&mut self, direction: KeyCode, ctx: &mut Context) {
         let dt = ggez::timer::delta(ctx).as_secs_f32();
         match direction {
             KeyCode::Up => self.position.y -= self.speed * dt,
@@ -108,6 +118,5 @@ impl Body {
             &self.size,
             &Position::from_f32(graphics::drawable_size(ctx)),
         );
-
     }
 }
