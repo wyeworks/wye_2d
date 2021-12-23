@@ -60,14 +60,19 @@ impl World {
     */
 
     pub fn begin_interaction(&mut self, _ctx: &mut Context) {
-        let player = self.player_components[0].as_mut().unwrap();
-        let current_focus = player.current_focus; //&self.player_components[0].as_ref().unwrap().current_focus;
-        match current_focus {
-            Some(focused_entity_id) => {
-                //println!("Focused id: {}", focused_entity_id);
-                player.interacting = Some(Interaction::new(focused_entity_id));
+        for player in self.player_components.iter_mut() {
+            match player {
+                Some(player) => {
+                    let current_focus = player.current_focus;
+                    match current_focus {
+                        Some(focused_entity_id) => {
+                            player.interacting = Some(Interaction::new(focused_entity_id));
+                        }
+                        None => (),
+                    }
+                }
+                None => (),
             }
-            None => (),
         }
     }
 
