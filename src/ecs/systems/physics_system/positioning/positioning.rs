@@ -74,15 +74,6 @@ pub trait Sizable {
     fn get_position(&self) -> &Position;
 }
 
-#[derive(Copy, Clone)]
-
-pub struct Physics {
-    pub position: Position,
-    pub size: Size,
-    pub speed: f32,
-    pub color: graphics::Color,
-}
-
 impl Sizable for Physics {
     fn get_size(&self) -> &Size {
         &self.size
@@ -93,6 +84,13 @@ impl Sizable for Physics {
     }
 }
 
+#[derive(Copy, Clone)]
+pub struct Physics {
+    pub position: Position,
+    pub size: Size,
+    pub speed: f32,
+    pub color: graphics::Color,
+}
 
 impl Physics {
     pub fn new(position: Position, size: Size, speed: f32, color: graphics::Color) -> Self {

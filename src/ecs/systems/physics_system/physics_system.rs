@@ -1,12 +1,10 @@
-use ggez::{event::KeyCode, graphics, input::keyboard, Context, GameResult};
-use rand::Rng;
-
+use super::positioning::{collision::objects_collide, positioning::*};
 use crate::ecs::{
     components::{npc::Npc, player::Player},
     constants::*,
 };
-
-use super::positioning::{collision::objects_collide, positioning::*};
+use ggez::{event::KeyCode, graphics, input::keyboard, Context, GameResult};
+use rand::Rng;
 
 pub enum Entity {
     Player,

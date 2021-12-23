@@ -1,10 +1,8 @@
 use super::components::{npc::Npc, player::Player};
 use super::systems::physics_system::physics_system::*;
-use crate::ecs::systems::physics_system::positioning::{collision::Interaction, positioning::*};
-
-use ggez::*;
-
 use super::{constants::*, systems::*};
+use crate::ecs::systems::physics_system::positioning::{collision::Interaction, positioning::*};
+use ggez::*;
 
 pub type EntityIndex = usize;
 
@@ -55,9 +53,6 @@ impl World {
         )?;
         Ok(())
     }
-    /*
-        pub fn player_control_system(&mut self, ctx: &mut Context) -> GameResult {}
-    */
 
     pub fn begin_interaction(&mut self, _ctx: &mut Context) {
         for player in self.player_components.iter_mut() {

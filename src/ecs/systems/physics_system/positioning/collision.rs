@@ -10,6 +10,7 @@ pub fn objects_collide(a: &Physics, b: &Physics) -> bool {
         && a.get_size().h_half() + a.get_position().y > b.get_position().y - b.get_size().h_half();
     return collision;
 }
+
 #[derive(Copy, Clone)]
 pub struct Interaction {
     pub making_contact: bool,

@@ -21,8 +21,8 @@ impl ggez::event::EventHandler<GameError> for GameState {
     }
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
+        graphics::clear(ctx, graphics::Color::from_rgb(130, 90, 44));
         self.world.draw(ctx)?;
-
         graphics::present(ctx)?;
         Ok(())
     }
@@ -31,6 +31,7 @@ impl ggez::event::EventHandler<GameError> for GameState {
         match key {
             KeyCode::Space => {
                 self.world = World::new();
+                self.world.load_initial_components();
             }
             KeyCode::Return => {
                 self.world.begin_interaction(ctx);

@@ -1,12 +1,10 @@
+use super::physics_system::positioning::positioning::{Physics, Sizable};
+use crate::ecs::components::{npc::Npc, player::Player};
 use ggez::{
     self,
     graphics::{Color, DrawMode, DrawParam, TextFragment},
     Context, GameResult, *,
 };
-
-use crate::ecs::components::{npc::Npc, player::Player};
-
-use super::physics_system::positioning::positioning::{Physics, Sizable};
 
 pub fn render(
     physics_components: &Vec<Option<Physics>>,
@@ -14,8 +12,6 @@ pub fn render(
     npc_components: &Vec<Option<Npc>>,
     ctx: &mut Context,
 ) -> GameResult {
-    graphics::clear(ctx, graphics::Color::from_rgb(130, 90, 44));
-
     for object in physics_components {
         match object {
             Some(physics) => draw_object(ctx, &physics)?,

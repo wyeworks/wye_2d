@@ -1,5 +1,6 @@
 use ecs::game_state::GameState;
 use ggez::*;
+
 pub mod ecs {
     pub mod constants;
     pub mod game_state;
