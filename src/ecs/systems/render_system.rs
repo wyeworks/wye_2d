@@ -1,5 +1,8 @@
-use super::physics_system::positioning::positioning::{Physics, Sizable};
-use crate::ecs::components::{npc::Npc, player::Player};
+use super::physics_system::positioning::{
+    collision::Interaction,
+    positioning::{Physics, Sizable},
+};
+use crate::ecs::components::npc::Npc;
 use ggez::{
     self,
     graphics::{Color, DrawMode, DrawParam, TextFragment},
@@ -8,8 +11,8 @@ use ggez::{
 
 pub fn render(
     physics_components: &Vec<Option<Physics>>,
-    player_components: &Vec<Option<Player>>,
     npc_components: &Vec<Option<Npc>>,
+    current_interaction: &Option<Interaction>,
     ctx: &mut Context,
 ) -> GameResult {
     for object in physics_components {
@@ -19,8 +22,7 @@ pub fn render(
         }
     }
 
-    let player = &player_components[0].unwrap();
-    match player.interacting {
+    match current_interaction {
         Some(interaction) => {
             let interacting_with = interaction.interacting_with;
             draw_interaction(

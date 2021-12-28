@@ -1,4 +1,4 @@
-use super::components::{npc::Npc, player::Player};
+use super::components::npc::Npc;
 use super::systems::physics_system::physics_system::*;
 use super::{constants::*, systems::*};
 use crate::ecs::systems::physics_system::positioning::{collision::Interaction, positioning::*};
@@ -6,25 +6,26 @@ use ggez::*;
 
 pub type EntityIndex = usize;
 
-pub struct World {
-    player_components: Vec<Option<Player>>,
+pub struct Ecs {
     physics_components: Vec<Option<Physics>>,
     npcs_components: Vec<Option<Npc>>,
-    players: Vec<EntityIndex>,
+    player_index: EntityIndex,
+    pub current_interaction: Option<Interaction>,
+    pub current_focus: Option<EntityIndex>,
 }
 
-impl World {
-    pub fn new() -> World {
-        let player_components = Vec::new();
+impl Ecs {
+    pub fn new() -> Ecs {
         let npcs_components = Vec::new();
         let physics_components = Vec::new();
-        let players = Vec::new();
+        let player_index = 0;
 
-        World {
-            players,
+        Ecs {
             physics_components,
             npcs_components,
-            player_components,
+            player_index,
+            current_interaction: None,
+            current_focus: None,
         }
     }
 
@@ -35,50 +36,49 @@ impl World {
     }
 
     pub fn update(&mut self, ctx: &mut Context) -> GameResult {
-        update_physics(
-            &mut self.physics_components,
-            &mut self.npcs_components,
-            &mut self.player_components,
-            ctx,
-        )?;
+        match self.current_interaction {
+            Some(_) => (),
+            None => {
+                let player_mov_actions = player_input_system::handle_input(ctx);
+                update_player_physics(
+                    &mut self.physics_components,
+                    &mut self.npcs_components,
+                    &mut self.current_focus,
+                    &self.player_index,
+                    &player_mov_actions,
+                    ctx,
+                )?;
+            }
+        }
         Ok(())
     }
 
     pub fn draw(&mut self, ctx: &mut Context) -> GameResult {
         render_system::render(
             &self.physics_components,
-            &self.player_components,
             &self.npcs_components,
+            &self.current_interaction,
             ctx,
         )?;
         Ok(())
     }
 
-    pub fn begin_interaction(&mut self, _ctx: &mut Context) {
-        for player in self.player_components.iter_mut() {
-            match player {
-                Some(player) => {
-                    let current_focus = player.current_focus;
-                    match current_focus {
-                        Some(focused_entity_id) => {
-                            player.interacting = Some(Interaction::new(focused_entity_id));
-                        }
-                        None => (),
-                    }
-                }
-                None => (),
+    pub fn begin_interaction(&mut self) {
+        match self.current_focus {
+            Some(focused_entity_id) => {
+                self.current_interaction = Some(Interaction::new(focused_entity_id));
             }
+            None => (),
         }
     }
 
-    pub fn add_player(&mut self) {
-        let player_component: Option<Player> = Some(Player {
-            interacting: None,
-            current_focus: None,
-        });
+    pub fn end_interaction(&mut self) {
+        self.current_interaction = None;
+    }
 
+    pub fn add_player(&mut self) {
         let player_physics = Some(generate_physics(Entity::Player));
-        self.add_entity(player_physics, player_component, None);
+        self.add_entity(player_physics, None);
     }
 
     pub fn add_npcs(&mut self) {
@@ -86,7 +86,6 @@ impl World {
         for npc_data in npcs.iter() {
             self.add_entity(
                 Some(generate_physics(Entity::Npc)),
-                None,
                 Some(Npc {
                     name: npc_data.to_owned(),
                 }),
@@ -112,23 +111,13 @@ impl World {
                 0.0,
                 graphics::Color::WHITE,
             ));
-            self.add_entity(object_physics, None, None)
+            self.add_entity(object_physics, None)
         }
     }
 
-    pub fn add_entity(
-        &mut self,
-        physics: Option<Physics>,
-        player: Option<Player>,
-        npc: Option<Npc>,
-    ) {
+    pub fn add_entity(&mut self, physics: Option<Physics>, npc: Option<Npc>) {
         self.physics_components.push(physics);
         self.npcs_components.push(npc);
-        self.player_components.push(player);
-        match player {
-            Some(_) => self.players.push(self.player_components.len() - 1),
-            None => (),
-        }
     }
 }
 

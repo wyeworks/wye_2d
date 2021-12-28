@@ -1,9 +1,6 @@
 use super::positioning::{collision::objects_collide, positioning::*};
-use crate::ecs::{
-    components::{npc::Npc, player::Player},
-    constants::*,
-};
-use ggez::{event::KeyCode, graphics, input::keyboard, Context, GameResult};
+use crate::ecs::{components::npc::Npc, constants::*, ecs::EntityIndex};
+use ggez::{event::KeyCode, graphics, Context, GameResult};
 use rand::Rng;
 
 pub enum Entity {
@@ -52,50 +49,46 @@ pub fn get_random_position() -> (f32, f32) {
     (x as f32, y as f32)
 }
 
-pub fn update_physics(
+pub fn update_player_physics(
     physics_components: &mut Vec<Option<Physics>>,
     npcs_components: &mut Vec<Option<Npc>>,
-    player_components: &mut Vec<Option<Player>>,
+    current_focus: &mut Option<EntityIndex>,
+    player_index: &EntityIndex,
+    player_mov_actions: &Vec<KeyCode>,
     ctx: &mut Context,
 ) -> GameResult {
-    let player_mov_keys = [KeyCode::Up, KeyCode::Down, KeyCode::Left, KeyCode::Right];
+    for key in player_mov_actions {
+        let mut new_potential_player_physics = physics_components[*player_index].unwrap().clone();
 
-    for key in player_mov_keys {
-        if keyboard::is_key_pressed(ctx, key) {
-            let mut new_potential_player_physics = physics_components[0].unwrap().clone();
+        new_potential_player_physics.update_position(*key, ctx);
+        let mut player_collides: bool = false;
 
-            new_potential_player_physics.update_position(key, ctx);
-            let mut player_collides: bool = false;
-
-            for (index, object_physics) in physics_components.iter().enumerate() {
-                match object_physics {
-                    Some(physics) => {
-                        if index == 0 {
-                            continue;
-                        };
-                        if objects_collide(&new_potential_player_physics, &physics) {
-                            player_collides = true;
-                            let npc_index = npcs_components.get(index);
-                            match npc_index {
-                                Some(npc) => match npc {
-                                    Some(_) => {
-                                        let mut player_ref = player_components[0].unwrap(); //.clone();
-                                        player_ref.current_focus = Some(index);
-                                        player_components[0] = Some(player_ref);
-                                    }
-                                    None => (),
-                                },
-                                None => continue,
-                            }
+        for (index, object_physics) in physics_components.iter().enumerate() {
+            match object_physics {
+                Some(physics) => {
+                    if index == 0 {
+                        continue;
+                    };
+                    if objects_collide(&new_potential_player_physics, &physics) {
+                        player_collides = true;
+                        let npc_index = npcs_components.get(index);
+                        match npc_index {
+                            Some(npc) => match npc {
+                                Some(_) => {
+                                    *current_focus = Some(index);
+                                }
+                                None => (),
+                            },
+                            None => continue,
                         }
                     }
-                    None => continue,
                 }
+                None => continue,
             }
+        }
 
-            if !player_collides {
-                physics_components[0] = Some(new_potential_player_physics);
-            }
+        if !player_collides {
+            physics_components[0] = Some(new_potential_player_physics);
         }
     }
     Ok(())

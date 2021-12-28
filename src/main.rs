@@ -3,11 +3,10 @@ use ggez::*;
 
 pub mod ecs {
     pub mod constants;
+    pub mod ecs;
     pub mod game_state;
-    pub mod world;
     pub mod components {
         pub mod npc;
-        pub mod player;
     }
     pub mod systems {
         pub mod physics_system {
@@ -18,6 +17,7 @@ pub mod ecs {
             }
         }
         pub mod render_system;
+        pub mod player_input_system;
     }
 }
 
