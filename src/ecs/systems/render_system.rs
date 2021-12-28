@@ -11,10 +11,13 @@ use ggez::{
 
 pub fn render(
     physics_components: &Vec<Option<Physics>>,
+    player_physics: &Physics,
     npc_components: &Vec<Option<Npc>>,
     current_interaction: &Option<Interaction>,
     ctx: &mut Context,
 ) -> GameResult {
+    draw_object(ctx, &player_physics)?;
+
     for object in physics_components {
         match object {
             Some(physics) => draw_object(ctx, &physics)?,

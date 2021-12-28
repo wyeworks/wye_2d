@@ -9,28 +9,27 @@ pub type EntityIndex = usize;
 pub struct Ecs {
     physics_components: Vec<Option<Physics>>,
     npcs_components: Vec<Option<Npc>>,
-    player_index: EntityIndex,
-    pub current_interaction: Option<Interaction>,
-    pub current_focus: Option<EntityIndex>,
+    player_physics: Physics,
+    current_interaction: Option<Interaction>,
+    current_focus: Option<EntityIndex>,
 }
 
 impl Ecs {
     pub fn new() -> Ecs {
         let npcs_components = Vec::new();
         let physics_components = Vec::new();
-        let player_index = 0;
+        let player_physics = generate_physics(Entity::Player);
 
         Ecs {
             physics_components,
             npcs_components,
-            player_index,
+            player_physics,
             current_interaction: None,
             current_focus: None,
         }
     }
 
     pub fn load_initial_components(&mut self) {
-        self.add_player();
         self.add_npcs();
         self.add_innanimate_objects();
     }
@@ -41,10 +40,9 @@ impl Ecs {
             None => {
                 let player_mov_actions = player_input_system::handle_input(ctx);
                 update_player_physics(
-                    &mut self.physics_components,
-                    &mut self.npcs_components,
+                    &self.physics_components,
                     &mut self.current_focus,
-                    &self.player_index,
+                    &mut self.player_physics,
                     &player_mov_actions,
                     ctx,
                 )?;
@@ -56,6 +54,7 @@ impl Ecs {
     pub fn draw(&mut self, ctx: &mut Context) -> GameResult {
         render_system::render(
             &self.physics_components,
+            &self.player_physics,
             &self.npcs_components,
             &self.current_interaction,
             ctx,
@@ -65,31 +64,29 @@ impl Ecs {
 
     pub fn begin_interaction(&mut self) {
         match self.current_focus {
-            Some(focused_entity_id) => {
-                self.current_interaction = Some(Interaction::new(focused_entity_id));
-            }
+            Some(focused_entity_id) => match self.npcs_components.get(focused_entity_id) {
+                Some(_) => {
+                    self.current_interaction = Some(Interaction::new(focused_entity_id));
+                }
+                None => (),
+            },
             None => (),
         }
     }
 
     pub fn end_interaction(&mut self) {
         self.current_interaction = None;
-    }
-
-    pub fn add_player(&mut self) {
-        let player_physics = Some(generate_physics(Entity::Player));
-        self.add_entity(player_physics, None);
+        self.current_focus = None;
     }
 
     pub fn add_npcs(&mut self) {
         let npcs = get_wyeworkers_npcs();
         for npc_data in npcs.iter() {
-            self.add_entity(
-                Some(generate_physics(Entity::Npc)),
-                Some(Npc {
-                    name: npc_data.to_owned(),
-                }),
-            );
+            self.physics_components
+                .push(Some(generate_physics(Entity::Npc)));
+            self.npcs_components.push(Some(Npc {
+                name: npc_data.to_owned(),
+            }));
         }
     }
 
@@ -111,13 +108,8 @@ impl Ecs {
                 0.0,
                 graphics::Color::WHITE,
             ));
-            self.add_entity(object_physics, None)
+            self.physics_components.push(object_physics);
         }
-    }
-
-    pub fn add_entity(&mut self, physics: Option<Physics>, npc: Option<Npc>) {
-        self.physics_components.push(physics);
-        self.npcs_components.push(npc);
     }
 }
 
