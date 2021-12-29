@@ -65,10 +65,10 @@ impl Ecs {
     pub fn begin_interaction(&mut self) {
         match self.current_focus {
             Some(focused_entity_id) => {
-                let npc = self.npcs_components.get(focused_entity_id);
-                match npc {
-                    Some(npc2) => match npc2 {
-                        Some(a) => {
+                let some_npc = self.npcs_components.get(focused_entity_id);
+                match some_npc {
+                    Some(npc) => match npc {
+                        Some(_) => {
                             self.current_interaction = Some(Interaction::new(focused_entity_id));
                         }
                         None => (),
