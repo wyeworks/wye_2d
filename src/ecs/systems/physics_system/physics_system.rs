@@ -56,7 +56,7 @@ pub fn update_player_physics(
     player_mov_actions: &Vec<KeyCode>,
     ctx: &mut Context,
 ) -> GameResult {
-    for key in player_mov_actions {
+    for key in player_mov_actions.iter() {
         let mut new_potential_player_physics = player_physics.clone();
         new_potential_player_physics.update_position(*key, ctx);
         let mut player_collides: bool = false;

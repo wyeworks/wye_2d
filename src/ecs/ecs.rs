@@ -2,12 +2,11 @@ use super::components::npc::Npc;
 use super::systems::physics_system::physics_system::*;
 use super::{constants::*, systems::*};
 use crate::ecs::systems::physics_system::positioning::{collision::Interaction, positioning::*};
-use ggez::event::*;
 use ggez::*;
 
 pub type EntityIndex = usize;
 
-pub struct GameState {
+pub struct Ecs {
     physics_components: Vec<Option<Physics>>,
     npcs_components: Vec<Option<Npc>>,
     player_physics: Physics,
@@ -15,43 +14,13 @@ pub struct GameState {
     current_focus: Option<EntityIndex>,
 }
 
-impl ggez::event::EventHandler<GameError> for GameState {
-    fn update(&mut self, ctx: &mut Context) -> GameResult {
-        self.update(ctx)?;
-        Ok(())
-    }
-
-    fn draw(&mut self, ctx: &mut Context) -> GameResult {
-        graphics::clear(ctx, graphics::Color::from_rgb(130, 90, 44));
-        self.draw(ctx)?;
-        graphics::present(ctx)?;
-        Ok(())
-    }
-
-    fn key_down_event(&mut self, _ctx: &mut Context, key: KeyCode, _mods: KeyMods, _: bool) {
-        match key {
-            KeyCode::Space => {
-                *self = GameState::new();
-                self.load_initial_components();
-            }
-            KeyCode::Return => {
-                self.begin_interaction();
-            }
-            KeyCode::Escape => {
-                self.end_interaction();
-            }
-            _ => (),
-        }
-    }
-}
-
-impl GameState {
-    pub fn new() -> GameState {
+impl Ecs {
+    pub fn new() -> Ecs {
         let npcs_components = Vec::new();
         let physics_components = Vec::new();
         let player_physics = generate_physics(Entity::Player);
 
-        GameState {
+        Ecs {
             physics_components,
             npcs_components,
             player_physics,
@@ -119,11 +88,12 @@ impl GameState {
     pub fn add_npcs(&mut self) {
         let npcs = get_wyeworkers_npcs();
         for npc_data in npcs.iter() {
-            self.physics_components
-                .push(Some(generate_physics(Entity::Npc)));
-            self.npcs_components.push(Some(Npc {
-                name: npc_data.to_owned(),
-            }));
+            self.add_entity(
+                Some(generate_physics(Entity::Npc)),
+                Some(Npc {
+                    name: npc_data.to_owned(),
+                }),
+            );
         }
     }
 
@@ -145,8 +115,13 @@ impl GameState {
                 0.0,
                 graphics::Color::WHITE,
             ));
-            self.physics_components.push(object_physics);
+            self.add_entity(object_physics, None)
         }
+    }
+
+    pub fn add_entity(&mut self, physics: Option<Physics>, npc: Option<Npc>) {
+        self.physics_components.push(physics);
+        self.npcs_components.push(npc);
     }
 }
 
