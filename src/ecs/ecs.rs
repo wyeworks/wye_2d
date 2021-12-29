@@ -64,12 +64,18 @@ impl Ecs {
 
     pub fn begin_interaction(&mut self) {
         match self.current_focus {
-            Some(focused_entity_id) => match self.npcs_components.get(focused_entity_id) {
-                Some(_) => {
-                    self.current_interaction = Some(Interaction::new(focused_entity_id));
+            Some(focused_entity_id) => {
+                let npc = self.npcs_components.get(focused_entity_id);
+                match npc {
+                    Some(npc2) => match npc2 {
+                        Some(a) => {
+                            self.current_interaction = Some(Interaction::new(focused_entity_id));
+                        }
+                        None => (),
+                    },
+                    None => (),
                 }
-                None => (),
-            },
+            }
             None => (),
         }
     }
@@ -82,11 +88,12 @@ impl Ecs {
     pub fn add_npcs(&mut self) {
         let npcs = get_wyeworkers_npcs();
         for npc_data in npcs.iter() {
-            self.physics_components
-                .push(Some(generate_physics(Entity::Npc)));
-            self.npcs_components.push(Some(Npc {
-                name: npc_data.to_owned(),
-            }));
+            self.add_entity(
+                Some(generate_physics(Entity::Npc)),
+                Some(Npc {
+                    name: npc_data.to_owned(),
+                }),
+            );
         }
     }
 
@@ -108,8 +115,13 @@ impl Ecs {
                 0.0,
                 graphics::Color::WHITE,
             ));
-            self.physics_components.push(object_physics);
+            self.add_entity(object_physics, None)
         }
+    }
+
+    pub fn add_entity(&mut self, physics: Option<Physics>, npc: Option<Npc>) {
+        self.physics_components.push(physics);
+        self.npcs_components.push(npc);
     }
 }
 
