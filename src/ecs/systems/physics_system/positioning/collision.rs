@@ -1,5 +1,5 @@
 use super::positioning::*;
-use crate::ecs::ecs::EntityIndex;
+use crate::ecs::game_state::EntityIndex;
 use std::time::Instant;
 
 pub fn objects_collide(a: &Physics, b: &Physics) -> bool {

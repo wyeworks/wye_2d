@@ -1,5 +1,5 @@
 use super::positioning::{collision::objects_collide, positioning::*};
-use crate::ecs::{constants::*, ecs::EntityIndex};
+use crate::ecs::{constants::*, game_state::EntityIndex};
 use ggez::{event::KeyCode, graphics, Context, GameResult};
 use rand::Rng;
 

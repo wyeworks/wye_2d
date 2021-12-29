@@ -3,7 +3,6 @@ use ggez::*;
 
 pub mod ecs {
     pub mod constants;
-    pub mod ecs;
     pub mod game_state;
     pub mod components {
         pub mod npc;
@@ -16,8 +15,8 @@ pub mod ecs {
                 pub mod positioning;
             }
         }
-        pub mod render_system;
         pub mod player_input_system;
+        pub mod render_system;
     }
 }
 
@@ -32,6 +31,7 @@ fn main() -> GameResult {
 
     graphics::set_window_title(&ctx, "Welcome to Wyeworks!");
 
-    let state = GameState::new();
-    event::run(ctx, event_loop, state);
+    let mut game_state = GameState::new();
+    game_state.load_initial_components();
+    event::run(ctx, event_loop, game_state);
 }
