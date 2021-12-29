@@ -74,6 +74,7 @@ pub fn update_player_physics(
         }
 
         if !player_collides {
+            *current_focus = None;
             *player_physics = new_potential_player_physics;
         }
     }
