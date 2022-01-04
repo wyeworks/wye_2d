@@ -1,38 +1,22 @@
+use ecs::game_state::GameState;
 use ggez::*;
-pub mod entities {
-    pub mod desk;
-    pub mod map;
-    pub mod player;
-}
 
-pub mod positioning {
-    pub mod collision;
-    pub mod positioning;
-}
-
-use entities::map::*;
-
-// The main game state
-struct State {
-    map: Map,
-}
-
-impl State {
-    pub fn new() -> Self {
-        State { map: Map::new() }
+pub mod ecs {
+    pub mod constants;
+    pub mod game_state;
+    pub mod components {
+        pub mod npc;
     }
-}
-
-impl ggez::event::EventHandler<GameError> for State {
-    fn update(&mut self, ctx: &mut Context) -> GameResult {
-        self.map.update(ctx)?;
-        Ok(())
-    }
-    fn draw(&mut self, ctx: &mut Context) -> GameResult {
-        self.map.draw(ctx)?;
-
-        graphics::present(ctx)?;
-        Ok(())
+    pub mod systems {
+        pub mod physics_system {
+            pub mod physics_system;
+            pub mod positioning {
+                pub mod collision;
+                pub mod positioning;
+            }
+        }
+        pub mod player_input_system;
+        pub mod render_system;
     }
 }
 
@@ -47,6 +31,7 @@ fn main() -> GameResult {
 
     graphics::set_window_title(&ctx, "Welcome to Wyeworks!");
 
-    let state = State::new();
-    event::run(ctx, event_loop, state);
+    let mut game_state = GameState::new();
+    game_state.load_initial_components();
+    event::run(ctx, event_loop, game_state);
 }
