@@ -151,23 +151,45 @@ impl GameState {
     pub fn add_npcs(&mut self) {
         let npcs = get_wyeworkers_npcs();
         for npc_data in npcs.iter() {
-            let mut options = Vec::new();
-            options.push("yes".to_string());
-            options.push("no".to_string());
+            let mut main_interaction_options = Vec::new();
+            main_interaction_options.push("ask for franco".to_string());
+            main_interaction_options.push("give a banana".to_string());
 
-            let mut option_actions = Vec::new();
-            option_actions.push(Interaction::new(None, None, "Thanks!".to_string()));
+            let mut sub_interactions = Vec::new();
 
-            let dialog = "Choose an option".to_string();
+            let mut sub_interaction_a_options = Vec::new();
+            sub_interaction_a_options.push("- When was the last time you saw him?".to_string());
+            sub_interaction_a_options.push("leave".to_string());
 
-            let interaction = Interaction::new(Some(options), Some(option_actions), dialog);
+            let mut sub_interactions_a = Vec::new();
+            let sub_interaction_a1 = Interaction::new(None, None, "- sorry, I need to go.".to_string());
+            sub_interactions_a.push(sub_interaction_a1);
+
+            let sub_interaction_a = Interaction::new(
+                Some(sub_interaction_a_options),
+                Some(sub_interactions_a),
+                "- Mhmm.. I haven't seen him.".to_string(),
+            );
+
+            let sub_interaction_b = Interaction::new(None, None, "- Oh, thanks!".to_string());
+
+            sub_interactions.push(sub_interaction_a);
+            sub_interactions.push(sub_interaction_b);
+
+            let dialog = "- Hi Julián!".to_string();
+
+            let main_interaction = Interaction::new(
+                Some(main_interaction_options),
+                Some(sub_interactions),
+                dialog,
+            );
 
             self.add_entity(
                 Some(generate_physics(Entity::Npc)),
                 Some(Npc {
                     name: npc_data.to_owned(),
                 }),
-                Some(interaction),
+                Some(main_interaction),
             );
         }
     }

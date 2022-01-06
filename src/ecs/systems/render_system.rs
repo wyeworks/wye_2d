@@ -29,9 +29,7 @@ pub fn render(
     match current_interaction {
         Some(interaction) => {
             draw_interaction(
-                npcs_components[interacting_with.unwrap()]
-                    .as_ref()
-                    .unwrap(),
+                npcs_components[interacting_with.unwrap()].as_ref().unwrap(),
                 physics_components[interacting_with.unwrap()]
                     .as_ref()
                     .unwrap(),
@@ -66,8 +64,8 @@ pub fn draw_interaction(
     interaction: &Interaction,
     ctx: &mut Context,
 ) -> GameResult {
-    let dialog_box_w = npc_physics.size.width * 3.0;
-    let dialog_box_h = npc_physics.size.height * 4.0;
+    let dialog_box_w = npc_physics.size.width * 15.0;
+    let dialog_box_h = npc_physics.size.height * 5.0;
 
     let dialog_box_x = npc_physics.position.x + npc_physics.size.width * 2.0;
     let dialog_box_y = npc_physics.position.y - npc_physics.size.height * 1.5;
@@ -113,27 +111,33 @@ fn draw_dialog_box_content(
 
     graphics::draw(ctx, &name_text, params)?;
 
-    let interaction_text = create_default_text(interaction.dialog.to_string());
+    let interaction_text = create_default_npc_dialog_text(interaction.dialog.to_string());
 
     coords = [dialog_box_x + 10.0, dialog_box_y + 20.0];
     params = draw_params_from_coords(coords);
 
     graphics::draw(ctx, &interaction_text, params)?;
 
+    let (a, b) = (
+        mint::Point2 {
+            x: dialog_box_x + 20.0,
+            y: dialog_box_y + 40.0,
+        },
+        mint::Point2 {
+            x: dialog_box_x + 170.0,
+            y: dialog_box_y + 40.0,
+        },
+    );
+    let line =
+        graphics::Mesh::new_line(ctx, &[a, b], 1.0, graphics::Color::from_rgb(210, 218, 226))?;
+
+    graphics::draw(ctx, &line, graphics::DrawParam::default())?;
+
     match &interaction.options {
         Some(_) => draw_dialog_options(dialog_box_x, dialog_box_y, interaction, ctx)?,
         None => (),
     }
 
-    Ok(())
-}
-
-fn draw_greeting(dialog_box_x: f32, dialog_box_y: f32, ctx: &mut Context) -> GameResult {
-    let coords = [dialog_box_x + 10.0, dialog_box_y + 20.0];
-    let params = draw_params_from_coords(coords);
-    let greeting_text = create_default_text("Hi Julián! What can I help you with? ".to_string());
-
-    graphics::draw(ctx, &greeting_text, params)?;
     Ok(())
 }
 
@@ -167,7 +171,16 @@ fn draw_params_from_coords(coords: [f32; 2]) -> graphics::DrawParam {
 fn create_default_text(text: String) -> graphics::Text {
     graphics::Text::new(TextFragment {
         text,
-        color: Some(Color::BLACK),
+        color: Some(Color::from_rgb(30, 39, 46)),
+        font: Some(graphics::Font::default()),
+        ..Default::default()
+    })
+}
+
+fn create_default_npc_dialog_text(text: String) -> graphics::Text {
+    graphics::Text::new(TextFragment {
+        text,
+        color: Some(Color::from_rgb(87, 75, 144)),
         font: Some(graphics::Font::default()),
         ..Default::default()
     })
