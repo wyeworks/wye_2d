@@ -13,6 +13,7 @@ pub struct GameState {
     player_physics: Physics,
     current_interaction: Option<Interaction>,
     current_focus: Option<EntityIndex>,
+    npcs_interactions: Vec<Option<Interaction>>,
 }
 
 impl ggez::event::EventHandler<GameError> for GameState {
@@ -29,18 +30,19 @@ impl ggez::event::EventHandler<GameError> for GameState {
     }
 
     fn key_down_event(&mut self, _ctx: &mut Context, key: KeyCode, _mods: KeyMods, _: bool) {
-        match key {
-            KeyCode::Space => {
-                *self = GameState::new();
-                self.load_initial_components();
-            }
-            KeyCode::Return => {
-                self.begin_interaction();
-            }
-            KeyCode::Escape => {
-                self.end_interaction();
-            }
-            _ => (),
+        match self.current_interaction {
+            Some(_) => self.interaction_input_handler(key),
+            None => match key {
+                KeyCode::Space => {
+                    *self = GameState::new();
+                    self.load_initial_components();
+                }
+                KeyCode::Return => {
+                    self.begin_interaction();
+                }
+
+                _ => (),
+            },
         }
     }
 }
@@ -50,6 +52,7 @@ impl GameState {
         let npcs_components = Vec::new();
         let physics_components = Vec::new();
         let player_physics = generate_physics(Entity::Player);
+        let npcs_interactions = Vec::new();
 
         GameState {
             physics_components,
@@ -57,6 +60,7 @@ impl GameState {
             player_physics,
             current_interaction: None,
             current_focus: None,
+            npcs_interactions,
         }
     }
 
@@ -66,10 +70,10 @@ impl GameState {
     }
 
     pub fn update(&mut self, ctx: &mut Context) -> GameResult {
+        let player_mov_actions = player_input_system::handle_input(ctx);
         match self.current_interaction {
             Some(_) => (),
             None => {
-                let player_mov_actions = player_input_system::handle_input(ctx);
                 update_player_physics(
                     &self.physics_components,
                     &mut self.current_focus,
@@ -88,6 +92,7 @@ impl GameState {
             &self.player_physics,
             &self.npcs_components,
             &self.current_interaction,
+            &self.current_focus,
             ctx,
         )?;
         Ok(())
@@ -96,8 +101,43 @@ impl GameState {
     pub fn begin_interaction(&mut self) {
         match self.current_focus {
             Some(focused_entity_id) => match &self.npcs_components[focused_entity_id] {
-                Some(_) => self.current_interaction = Some(Interaction::new(focused_entity_id)),
+                Some(_) => {
+                    self.current_interaction = self.npcs_interactions[focused_entity_id].clone()
+                }
                 None => (),
+            },
+            None => (),
+        }
+    }
+
+    fn interaction_input_handler(&mut self, key: KeyCode) {
+        match key {
+            KeyCode::Up | KeyCode::Down | KeyCode::Return => self.update_interaction(key),
+            KeyCode::Escape => self.end_interaction(),
+            _ => (),
+        }
+    }
+
+    fn update_interaction(&mut self, action: KeyCode) {
+        let mut interaction = self.current_interaction.as_mut().unwrap();
+        match &interaction.sub_interactions {
+            Some(sub_interactions) => match action {
+                KeyCode::Up => {
+                    if interaction.hovered_option != 0 {
+                        interaction.hovered_option -= 1;
+                    }
+                }
+                KeyCode::Down => {
+                    if interaction.hovered_option < interaction.options.as_ref().unwrap().len() - 1
+                    {
+                        interaction.hovered_option += 1;
+                    }
+                }
+                KeyCode::Return => {
+                    self.current_interaction =
+                        Some(sub_interactions[interaction.hovered_option].clone());
+                }
+                _ => (),
             },
             None => (),
         }
@@ -111,11 +151,24 @@ impl GameState {
     pub fn add_npcs(&mut self) {
         let npcs = get_wyeworkers_npcs();
         for npc_data in npcs.iter() {
-            self.physics_components
-                .push(Some(generate_physics(Entity::Npc)));
-            self.npcs_components.push(Some(Npc {
-                name: npc_data.to_owned(),
-            }));
+            let mut options = Vec::new();
+            options.push("yes".to_string());
+            options.push("no".to_string());
+
+            let mut option_actions = Vec::new();
+            option_actions.push(Interaction::new(None, None, "Thanks!".to_string()));
+
+            let dialog = "Choose an option".to_string();
+
+            let interaction = Interaction::new(Some(options), Some(option_actions), dialog);
+
+            self.add_entity(
+                Some(generate_physics(Entity::Npc)),
+                Some(Npc {
+                    name: npc_data.to_owned(),
+                }),
+                Some(interaction),
+            );
         }
     }
 
@@ -137,8 +190,19 @@ impl GameState {
                 0.0,
                 graphics::Color::WHITE,
             ));
-            self.physics_components.push(object_physics);
+            self.add_entity(object_physics, None, None);
         }
+    }
+
+    pub fn add_entity(
+        &mut self,
+        physics: Option<Physics>,
+        npc: Option<Npc>,
+        interaction: Option<Interaction>,
+    ) {
+        self.physics_components.push(physics);
+        self.npcs_components.push(npc);
+        self.npcs_interactions.push(interaction);
     }
 }
 
