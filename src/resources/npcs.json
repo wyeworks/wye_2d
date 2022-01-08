@@ -11,14 +11,10 @@
                 ],
                 "sub_interactions": [
                     {
-                        "dialog": "Mhhm, I haven't seen him in a while.",
-                        "options": [],
-                        "option_actions": []
+                        "dialog": "Mhhm, I haven't seen him in a while."
                     },
                     {
-                        "dialog": "Oh, thanks!",
-                        "options": [],
-                        "sub_interactions": []
+                        "dialog": "Oh, thanks!"
                     }
                 ]
             }
@@ -34,14 +30,10 @@
                 ],
                 "sub_interactions": [
                     {
-                        "dialog": "Idk, why do you need him?",
-                        "options": [],
-                        "option_actions": []
+                        "dialog": "Idk, why do you need him?"
                     },
                     {
-                        "dialog": "Lorem ipsum!",
-                        "options": [],
-                        "sub_interactions": []
+                        "dialog": "Lorem ipsum!"
                     }
                 ]
             }

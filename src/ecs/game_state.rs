@@ -135,11 +135,11 @@ impl GameState {
                 }
                 KeyCode::Return => {
                     self.current_interaction =
-                        Some(sub_interactions[interaction.hovered_option].clone());
+                        Some(sub_interactions[interaction.hovered_option].clone())
                 }
                 _ => (),
             },
-            None => (),
+            None => self.current_interaction = None,
         }
     }
 
