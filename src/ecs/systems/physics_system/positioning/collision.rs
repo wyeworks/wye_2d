@@ -1,5 +1,4 @@
 use super::positioning::*;
-use std::time::Instant;
 
 pub fn objects_collide(a: &Physics, b: &Physics) -> bool {
     let collision = a.get_position().x - a.get_size().w_half()
@@ -10,12 +9,15 @@ pub fn objects_collide(a: &Physics, b: &Physics) -> bool {
     return collision;
 }
 
-#[derive(Clone)]
+#[derive(Clone, Deserialize, Debug)]
 pub struct Interaction {
-    pub began_at: Instant,
+    #[serde(default)]
     pub hovered_option: usize,
+    #[serde(default)]
     pub options: Option<Vec<String>>,
+    #[serde(default)]
     pub sub_interactions: Option<Vec<Interaction>>,
+    #[serde(default)]
     pub dialog: String,
 }
 
@@ -26,11 +28,21 @@ impl Interaction {
         dialog: String,
     ) -> Interaction {
         Interaction {
-            began_at: Instant::now(),
             hovered_option: 0,
             options,
             sub_interactions,
             dialog,
+        }
+    }
+}
+
+impl Default for Interaction {
+    fn default() -> Interaction {
+        Interaction {
+            hovered_option: 0,
+            options: None,
+            sub_interactions: None,
+            dialog: "Hi!".to_string(),
         }
     }
 }
