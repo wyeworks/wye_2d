@@ -194,12 +194,3 @@ impl GameState {
         self.npcs_interactions.push(interaction);
     }
 }
-
-pub fn get_wyeworkers_npcs() -> Vec<String> {
-    let mut wyeworkers = Vec::new();
-    wyeworkers.push("Juan".to_string());
-    wyeworkers.push("Andrés".to_string());
-    wyeworkers.push("Nico".to_string());
-    wyeworkers.push("Mauri".to_string());
-    wyeworkers
-}
