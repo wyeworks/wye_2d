@@ -1,6 +1,4 @@
 use super::positioning::*;
-use crate::ecs::game_state::EntityIndex;
-use std::time::Instant;
 
 pub fn objects_collide(a: &Physics, b: &Physics) -> bool {
     let collision = a.get_position().x - a.get_size().w_half()
@@ -11,19 +9,40 @@ pub fn objects_collide(a: &Physics, b: &Physics) -> bool {
     return collision;
 }
 
-#[derive(Copy, Clone)]
+#[derive(Clone, Deserialize, Debug)]
 pub struct Interaction {
-    pub making_contact: bool,
-    pub began_at: Instant,
-    pub interacting_with: EntityIndex,
+    #[serde(default)]
+    pub hovered_option: usize,
+    #[serde(default)]
+    pub options: Option<Vec<String>>,
+    #[serde(default)]
+    pub sub_interactions: Option<Vec<Interaction>>,
+    #[serde(default)]
+    pub dialog: String,
 }
 
 impl Interaction {
-    pub fn new(interacting_with: EntityIndex) -> Interaction {
+    pub fn new(
+        options: Option<Vec<String>>,
+        sub_interactions: Option<Vec<Interaction>>,
+        dialog: String,
+    ) -> Interaction {
         Interaction {
-            making_contact: true,
-            began_at: Instant::now(),
-            interacting_with,
+            hovered_option: 0,
+            options,
+            sub_interactions,
+            dialog,
+        }
+    }
+}
+
+impl Default for Interaction {
+    fn default() -> Interaction {
+        Interaction {
+            hovered_option: 0,
+            options: None,
+            sub_interactions: None,
+            dialog: "Hi!".to_string(),
         }
     }
 }

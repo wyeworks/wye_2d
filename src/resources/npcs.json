@@ -1,0 +1,42 @@
+{
+    "npcs": [
+        {
+            "id": 0,
+            "name": "Javi",
+            "main_interaction": {
+                "dialog": "Hi there!",
+                "options": [
+                    "ask for franco",
+                    "give a banana"
+                ],
+                "sub_interactions": [
+                    {
+                        "dialog": "Mhhm, I haven't seen him in a while."
+                    },
+                    {
+                        "dialog": "Oh, thanks!"
+                    }
+                ]
+            }
+        },
+        {
+            "id": 1,
+            "name": "Andrés",
+            "main_interaction": {
+                "dialog": "Hello!",
+                "options": [
+                    "ask for franco",
+                    "- what is bonding?"
+                ],
+                "sub_interactions": [
+                    {
+                        "dialog": "Idk, why do you need him?"
+                    },
+                    {
+                        "dialog": "Lorem ipsum!"
+                    }
+                ]
+            }
+        }
+    ]
+}

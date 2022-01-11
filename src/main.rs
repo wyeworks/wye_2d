@@ -1,9 +1,15 @@
+#[macro_use]
+extern crate serde_derive;
+extern crate serde;
+extern crate serde_json;
+
 use ecs::game_state::GameState;
 use ggez::*;
 
 pub mod ecs {
     pub mod constants;
     pub mod game_state;
+    pub mod npcs_loader;
     pub mod components {
         pub mod npc;
     }
