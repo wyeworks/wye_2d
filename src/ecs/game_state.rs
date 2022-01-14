@@ -1,4 +1,4 @@
-use super::systems::physics_system::physics_system::*;
+use super::systems::{camera_system::Camera, physics_system::physics_system::*};
 use super::{components::npc::Npc, npcs_loader::load_npcs};
 use super::{constants::*, systems::*};
 use crate::ecs::systems::physics_system::positioning::{collision::Interaction, positioning::*};
@@ -14,6 +14,8 @@ pub struct GameState {
     current_interaction: Option<Interaction>,
     current_focus: Option<EntityIndex>,
     npcs_interactions: Vec<Option<Interaction>>,
+    camera: Camera,
+    world_size: Size,
 }
 
 impl ggez::event::EventHandler<GameError> for GameState {
@@ -61,6 +63,11 @@ impl GameState {
             current_interaction: None,
             current_focus: None,
             npcs_interactions,
+            camera: Camera::new(player_physics.position.clone()),
+            world_size: Size {
+                width: INTIAL_WORLD_W,
+                height: INTIAL_WORLD_H,
+            },
         }
     }
 
@@ -75,11 +82,13 @@ impl GameState {
             Some(_) => (),
             None => {
                 update_player_physics(
+                    ctx,
                     &self.physics_components,
                     &mut self.current_focus,
                     &mut self.player_physics,
                     &player_mov_actions,
-                    ctx,
+                    &mut self.camera,
+                    &self.world_size,
                 )?;
             }
         }
@@ -88,12 +97,14 @@ impl GameState {
 
     pub fn draw(&mut self, ctx: &mut Context) -> GameResult {
         render_system::render(
+            ctx,
             &self.physics_components,
             &self.player_physics,
             &self.npcs_components,
             &self.current_interaction,
             &self.current_focus,
-            ctx,
+            &mut self.camera,
+            &self.world_size,
         )?;
         Ok(())
     }
