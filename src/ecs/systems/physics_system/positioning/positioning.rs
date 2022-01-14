@@ -1,6 +1,6 @@
 use ggez::{event::KeyCode, graphics, Context};
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct Position {
     pub x: f32,
     pub y: f32,
@@ -102,7 +102,7 @@ impl Physics {
         }
     }
 
-    pub fn update_position(&mut self, direction: KeyCode, ctx: &mut Context) {
+    pub fn update_position(&mut self, ctx: &mut Context, direction: KeyCode, world_size: &Size) {
         let dt = ggez::timer::delta(ctx).as_secs_f32();
         match direction {
             KeyCode::Up => self.position.y -= self.speed * dt,
@@ -114,7 +114,10 @@ impl Physics {
 
         self.position.clamp_self(
             &self.size,
-            &Position::from_f32(graphics::drawable_size(ctx)),
+            &Position {
+                x: world_size.width,
+                y: world_size.height,
+            },
         );
     }
 }

@@ -3,7 +3,11 @@ extern crate serde_derive;
 extern crate serde;
 extern crate serde_json;
 
-use ecs::game_state::GameState;
+use ecs::{
+    constants::{DEFAULT_WINDOW_H, DEFAULT_WINDOW_W},
+    game_state::GameState,
+};
+use ggez::conf::FullscreenType;
 use ggez::*;
 
 pub mod ecs {
@@ -21,6 +25,7 @@ pub mod ecs {
                 pub mod positioning;
             }
         }
+        pub mod camera_system;
         pub mod player_input_system;
         pub mod render_system;
     }
@@ -29,9 +34,23 @@ pub mod ecs {
 fn main() -> GameResult {
     let c = conf::Conf::new();
 
+    let window_mode = ggez::conf::WindowMode {
+        width: DEFAULT_WINDOW_W,
+        height: DEFAULT_WINDOW_H,
+        maximized: false,
+        fullscreen_type: FullscreenType::Windowed,
+        borderless: false,
+        min_width: 0.0,
+        min_height: 0.0,
+        max_width: 0.0,
+        max_height: 0.0,
+        resizable: false,
+        visible: true,
+        resize_on_scale_factor_change: true,
+    };
     let (ctx, event_loop) = ContextBuilder::new("wye_2D", "rust_team")
         .default_conf(c)
-        .window_mode(ggez::conf::WindowMode::default().dimensions(1300.0, 800.0))
+        .window_mode(window_mode)
         .build()
         .unwrap();
 
