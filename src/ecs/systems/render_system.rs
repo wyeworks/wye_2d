@@ -1,27 +1,34 @@
-use super::physics_system::positioning::{
-    collision::Interaction,
-    positioning::{Physics, Sizable},
+use super::{
+    camera_system::Camera,
+    physics_system::positioning::{
+        collision::Interaction,
+        positioning::{Physics, Position, Sizable, Size},
+    },
 };
 use crate::ecs::{components::npc::Npc, game_state::EntityIndex};
 use ggez::{
     self,
-    graphics::{Color, DrawMode, DrawParam, TextFragment},
+    graphics::{Color, DrawMode, DrawParam, StrokeOptions, TextFragment},
     Context, GameResult, *,
 };
 
 pub fn render(
+    ctx: &mut Context,
     physics_components: &Vec<Option<Physics>>,
     player_physics: &Physics,
     npcs_components: &Vec<Option<Npc>>,
     current_interaction: &Option<Interaction>,
     interacting_with: &Option<EntityIndex>,
-    ctx: &mut Context,
+    camera: &mut Camera,
+    world_size: &Size,
 ) -> GameResult {
-    draw_object(ctx, &player_physics)?;
+    draw_world_bounds(ctx, world_size, camera)?;
+
+    draw_object(ctx, &player_physics, camera)?;
 
     for object in physics_components {
         match object {
-            Some(physics) => draw_object(ctx, &physics)?,
+            Some(physics) => draw_object(ctx, &physics, camera)?,
             None => (),
         }
     }
@@ -43,10 +50,35 @@ pub fn render(
     Ok(())
 }
 
-pub fn draw_object(ctx: &mut Context, physics: &Physics) -> GameResult {
+pub fn draw_world_bounds(ctx: &mut Context, world_size: &Size, camera: &Camera) -> GameResult {
+    let rectangle_position = Position {
+        x: world_size.w_half(),
+        y: world_size.h_half(),
+    };
+
+    let position_in_camera: Position = camera.world_to_screen(&rectangle_position);
+
     let rect = graphics::Rect::new(
-        physics.position.x - physics.size.w_half(),
-        physics.position.y - physics.size.h_half(),
+        position_in_camera.x - world_size.w_half(),
+        position_in_camera.y - world_size.h_half(),
+        world_size.width,
+        world_size.height,
+    );
+
+    let stroke_options = StrokeOptions::default();
+    let drawing_mode = DrawMode::Stroke(stroke_options);
+    let rect_mesh = graphics::Mesh::new_rectangle(ctx, drawing_mode, rect, Color::BLACK)?;
+
+    graphics::draw(ctx, &rect_mesh, DrawParam::default())?;
+
+    Ok(())
+}
+
+pub fn draw_object(ctx: &mut Context, physics: &Physics, camera: &Camera) -> GameResult {
+    let position_in_camera: Position = camera.world_to_screen(&physics.position);
+    let rect = graphics::Rect::new(
+        position_in_camera.x - physics.size.w_half(),
+        position_in_camera.y - physics.size.h_half(),
         physics.get_size().width,
         physics.get_size().height,
     );

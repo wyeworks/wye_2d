@@ -1,5 +1,5 @@
 use super::positioning::{collision::objects_collide, positioning::*};
-use crate::ecs::{constants::*, game_state::EntityIndex};
+use crate::ecs::{constants::*, game_state::EntityIndex, systems::camera_system::Camera};
 use ggez::{event::KeyCode, graphics, Context, GameResult};
 use rand::Rng;
 
@@ -50,15 +50,26 @@ pub fn get_random_position() -> (f32, f32) {
 }
 
 pub fn update_player_physics(
+    ctx: &mut Context,
     physics_components: &Vec<Option<Physics>>,
     current_focus: &mut Option<EntityIndex>,
     player_physics: &mut Physics,
     player_mov_actions: &Vec<KeyCode>,
-    ctx: &mut Context,
+    camera: &mut Camera,
+    world_size: &Size,
 ) -> GameResult {
     for key in player_mov_actions.iter() {
         let mut new_potential_player_physics = player_physics.clone();
-        new_potential_player_physics.update_position(*key, ctx);
+        new_potential_player_physics.update_position(ctx, *key, world_size);
+
+        let should_update_camera = camera
+            .is_player_approaching_camera_edge(&new_potential_player_physics.position, *key)
+            && camera.is_within_world_bounds(world_size, *key);
+
+        if should_update_camera {
+            camera.update_position(*key, ctx);
+        }
+
         let mut player_collides: bool = false;
 
         for (index, object_physics) in physics_components.iter().enumerate() {
