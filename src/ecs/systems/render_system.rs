@@ -8,7 +8,7 @@ use super::{
 use crate::ecs::{components::npc::Npc, game_state::EntityIndex};
 use ggez::{
     self,
-    graphics::{Color, DrawMode, DrawParam, StrokeOptions, TextFragment},
+    graphics::{Color, DrawMode, DrawParam, Rect, StrokeOptions, TextFragment},
     Context, GameResult, *,
 };
 
@@ -36,12 +36,10 @@ pub fn render(
     match current_interaction {
         Some(interaction) => {
             draw_interaction(
-                npcs_components[interacting_with.unwrap()].as_ref().unwrap(),
-                physics_components[interacting_with.unwrap()]
-                    .as_ref()
-                    .unwrap(),
-                &interaction,
                 ctx,
+                npcs_components[interacting_with.unwrap()].as_ref().unwrap(),
+                &interaction,
+                &camera.size,
             )?;
         }
         None => (),
@@ -91,73 +89,102 @@ pub fn draw_object(ctx: &mut Context, physics: &Physics, camera: &Camera) -> Gam
 }
 
 pub fn draw_interaction(
-    npc_component: &Npc,
-    npc_physics: &Physics,
-    interaction: &Interaction,
     ctx: &mut Context,
+    npc_component: &Npc,
+    interaction: &Interaction,
+    camera_size: &Size,
 ) -> GameResult {
-    let dialog_box_w = npc_physics.size.width * 15.0;
-    let dialog_box_h = npc_physics.size.height * 5.0;
-
-    let dialog_box_x = npc_physics.position.x + npc_physics.size.width * 2.0;
-    let dialog_box_y = npc_physics.position.y - npc_physics.size.height * 1.5;
-
-    draw_dialog_box(dialog_box_x, dialog_box_y, dialog_box_w, dialog_box_h, ctx)?;
-
-    draw_dialog_box_content(dialog_box_x, dialog_box_y, npc_component, interaction, ctx)?;
-
+    draw_dialog_box(ctx, camera_size, npc_component, interaction)?;
     Ok(())
 }
 
 fn draw_dialog_box(
-    dialog_box_x: f32,
-    dialog_box_y: f32,
-    dialog_box_w: f32,
-    dialog_box_h: f32,
     ctx: &mut Context,
+    camera_size: &Size,
+    npc_component: &Npc,
+    interaction: &Interaction,
 ) -> GameResult {
-    let rect = graphics::Rect::new(dialog_box_x, dialog_box_y, dialog_box_w, dialog_box_h);
+    let dialog_box = graphics::Image::new(ctx, "/dialog_box.png")?;
 
-    let rect_mesh = graphics::Mesh::new_rectangle(
-        ctx,
-        DrawMode::fill(),
-        rect,
-        graphics::Color::from_rgb(247, 241, 227),
-    )?;
+    let dialog_box_x = camera_size.w_half() - (dialog_box.dimensions().w / 2.0);
 
-    graphics::draw(ctx, &rect_mesh, DrawParam::default())?;
+    let dialog_box_y =
+        camera_size.height - dialog_box.dimensions().h - 100.0 + (dialog_box.dimensions().h / 2.0);
+
+    let mut draw_params = graphics::DrawParam::default()
+        .dest([dialog_box_x, dialog_box_y])
+        .scale([1.0, 1.0]);
+
+    graphics::draw(ctx, &dialog_box, draw_params)?;
+
+    let avatar_box = graphics::Image::new(ctx, "/avatar_box.png")?;
+
+    let avatar_box_x =
+        camera_size.w_half() - (dialog_box.dimensions().w / 2.0) + avatar_box.dimensions().x / 2.0;
+
+    draw_params = graphics::DrawParam::default()
+        .dest([avatar_box_x, dialog_box_y])
+        .scale([1.0, 1.0]);
+
+    graphics::draw(ctx, &avatar_box, draw_params)?;
+
+    let name_text = create_default_text(npc_component.name.clone());
+
+    let coords = [
+        avatar_box_x + avatar_box.dimensions().w / 2.0 - name_text.dimensions(ctx).w / 2.0,
+        dialog_box_y + dialog_box.dimensions().h - dialog_box.dimensions().h / 4.0,
+    ];
+    draw_params = draw_params_from_coords(coords);
+
+    graphics::draw(ctx, &name_text, draw_params)?;
+    let avatar = graphics::Image::new(ctx, format!("/{:}.png", npc_component.name))?;
+
+    let avatar_coords = [
+        avatar_box_x + avatar_box.dimensions().w / 2.0 - (avatar.dimensions().w * 0.5) / 2.0,
+        dialog_box_y + dialog_box.dimensions().h / 2.0 - 100.0,
+    ];
+
+    draw_params = graphics::DrawParam::default()
+        .dest(avatar_coords)
+        .scale([0.5, 0.5]);
+
+    graphics::draw(ctx, &avatar, draw_params)?;
+
+    let speech_box_dimensions = Rect {
+        x: dialog_box_x + avatar_box.dimensions().w,
+        y: dialog_box_y,
+        w: dialog_box.dimensions().w - avatar_box.dimensions().w,
+        h: dialog_box.dimensions().h,
+    };
+
+    draw_dialog_box_content(ctx, speech_box_dimensions, interaction)?;
+
     Ok(())
 }
 
 fn draw_dialog_box_content(
-    dialog_box_x: f32,
-    dialog_box_y: f32,
-    npc_component: &Npc,
-    interaction: &Interaction,
     ctx: &mut Context,
+    speech_box_dimensions: graphics::Rect,
+    interaction: &Interaction,
 ) -> GameResult {
-    let name_text = create_default_text(npc_component.name.clone());
-
-    let mut coords = [dialog_box_x, dialog_box_y];
-    let mut params = draw_params_from_coords(coords);
-
-    graphics::draw(ctx, &name_text, params)?;
-
     let interaction_text = create_default_npc_dialog_text(interaction.dialog.to_string());
 
-    coords = [dialog_box_x + 10.0, dialog_box_y + 20.0];
-    params = draw_params_from_coords(coords);
+    let coords = [
+        speech_box_dimensions.x + 10.0,
+        speech_box_dimensions.y + 20.0,
+    ];
+    let params = draw_params_from_coords(coords);
 
     graphics::draw(ctx, &interaction_text, params)?;
 
     let (a, b) = (
         mint::Point2 {
-            x: dialog_box_x + 20.0,
-            y: dialog_box_y + 40.0,
+            x: speech_box_dimensions.x + 20.0,
+            y: speech_box_dimensions.y + 40.0,
         },
         mint::Point2 {
-            x: dialog_box_x + 170.0,
-            y: dialog_box_y + 40.0,
+            x: speech_box_dimensions.x + 170.0,
+            y: speech_box_dimensions.y + 40.0,
         },
     );
     let line =
@@ -166,7 +193,12 @@ fn draw_dialog_box_content(
     graphics::draw(ctx, &line, graphics::DrawParam::default())?;
 
     match &interaction.options {
-        Some(_) => draw_dialog_options(dialog_box_x, dialog_box_y, interaction, ctx)?,
+        Some(_) => draw_dialog_options(
+            speech_box_dimensions.x,
+            speech_box_dimensions.y,
+            interaction,
+            ctx,
+        )?,
         None => (),
     }
 
@@ -203,7 +235,7 @@ fn draw_params_from_coords(coords: [f32; 2]) -> graphics::DrawParam {
 fn create_default_text(text: String) -> graphics::Text {
     graphics::Text::new(TextFragment {
         text,
-        color: Some(Color::from_rgb(30, 39, 46)),
+        color: Some(Color::WHITE),
         font: Some(graphics::Font::default()),
         ..Default::default()
     })
@@ -212,7 +244,7 @@ fn create_default_text(text: String) -> graphics::Text {
 fn create_default_npc_dialog_text(text: String) -> graphics::Text {
     graphics::Text::new(TextFragment {
         text,
-        color: Some(Color::from_rgb(87, 75, 144)),
+        color: Some(Color::WHITE),
         font: Some(graphics::Font::default()),
         ..Default::default()
     })

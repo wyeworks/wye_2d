@@ -3,6 +3,8 @@ extern crate serde_derive;
 extern crate serde;
 extern crate serde_json;
 
+use std::path;
+
 use ecs::{
     constants::{DEFAULT_WINDOW_H, DEFAULT_WINDOW_W},
     game_state::GameState,
@@ -48,9 +50,15 @@ fn main() -> GameResult {
         visible: true,
         resize_on_scale_factor_change: true,
     };
+
+    let resource_dir = path::PathBuf::from("./src/resources");
+    
+
+
     let (ctx, event_loop) = ContextBuilder::new("wye_2D", "rust_team")
         .default_conf(c)
         .window_mode(window_mode)
+        .add_resource_path(resource_dir)
         .build()
         .unwrap();
 

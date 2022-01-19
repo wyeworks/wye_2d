@@ -1,32 +1,70 @@
 {
     "npcs": [
         {
-            "id": 0,
-            "name": "Javi",
+            "id": 1,
+            "name": "Julian",
             "main_interaction": {
                 "dialog": "Hi there!",
                 "options": [
-                    "ask for franco",
-                    "give a banana"
+                    "give a banana",
+                    "- have you seen franco?"
                 ],
                 "sub_interactions": [
                     {
-                        "dialog": "Mhhm, I haven't seen him in a while."
+                        "dialog": "Idk, why do you need him?"
                     },
                     {
-                        "dialog": "Oh, thanks!"
+                        "dialog": "Lorem ipsum!"
                     }
                 ]
             }
         },
         {
-            "id": 1,
-            "name": "Andrés",
+            "id": 2,
+            "name": "Mauri",
             "main_interaction": {
-                "dialog": "Hello!",
+                "dialog": "Hi there!",
                 "options": [
-                    "ask for franco",
-                    "- what is bonding?"
+                    "give a banana",
+                    "- have you seen franco?"
+                ],
+                "sub_interactions": [
+                    {
+                        "dialog": "Idk, why do you need him?"
+                    },
+                    {
+                        "dialog": "Lorem ipsum!"
+                    }
+                ]
+            }
+        },
+        {
+            "id": 3,
+            "name": "Cholee",
+            "main_interaction": {
+                "dialog": "Hey!",
+                "options": [
+                    "- reformers vs independiente?",
+                    "- have you seen franco?"
+                ],
+                "sub_interactions": [
+                    {
+                        "dialog": "Idk, why do you need him?"
+                    },
+                    {
+                        "dialog": "Lorem ipsum!"
+                    }
+                ]
+            }
+        },
+        {
+            "id": 4,
+            "name": "Gio",
+            "main_interaction": {
+                "dialog": "Que dicee!",
+                "options": [
+                    "give a banana",
+                    "- have you seen franco?"
                 ],
                 "sub_interactions": [
                     {
