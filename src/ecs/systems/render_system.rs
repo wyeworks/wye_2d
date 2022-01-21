@@ -5,12 +5,8 @@ use super::{
         positioning::{Physics, Position, Sizable, Size},
     },
 };
-use crate::ecs::{components::npc::Npc, game_state::EntityIndex};
-use ggez::{
-    self,
-    graphics::{Color, DrawMode, DrawParam, StrokeOptions, TextFragment},
-    Context, GameResult, *,
-};
+use crate::ecs::{components::npc::Npc, game_state::EntityIndex, tile::TileEntity};
+use ggez::{*, self, Context, GameResult, graphics::{Color, DrawMode, DrawParam, StrokeOptions, TextFragment, spritebatch::SpriteBatch}, mint::Vector2};
 
 pub fn render(
     ctx: &mut Context,
@@ -20,8 +16,21 @@ pub fn render(
     current_interaction: &Option<Interaction>,
     interacting_with: &Option<EntityIndex>,
     camera: &mut Camera,
+    tiles: &mut Vec<Box<TileEntity>>,
+    sprite_batch: &mut SpriteBatch,
     world_size: &Size,
 ) -> GameResult {
+
+    for i in 0..tiles.len() {
+        tiles[i].draw(sprite_batch, camera);
+    }
+
+    let p = graphics::DrawParam::new().scale(Vector2 { x: 1.0, y: 1.0 });
+    {
+        graphics::draw(ctx, sprite_batch, p)?;
+        sprite_batch.clear();
+    }
+
     draw_world_bounds(ctx, world_size, camera)?;
 
     draw_object(ctx, &player_physics, camera)?;

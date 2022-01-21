@@ -1,9 +1,13 @@
-use super::systems::{camera_system::Camera, physics_system::physics_system::*};
+use super::{
+    atlas::{self},
+    systems::{camera_system::Camera, physics_system::physics_system::*},
+    tile::{create_tiles, TileEntity},
+};
 use super::{components::npc::Npc, npcs_loader::load_npcs};
 use super::{constants::*, systems::*};
 use crate::ecs::systems::physics_system::positioning::{collision::Interaction, positioning::*};
-use ggez::event::*;
 use ggez::*;
+use ggez::{event::*, graphics::spritebatch::SpriteBatch};
 
 pub type EntityIndex = usize;
 
@@ -16,6 +20,8 @@ pub struct GameState {
     npcs_interactions: Vec<Option<Interaction>>,
     camera: Camera,
     world_size: Size,
+    tiles: Vec<Box<TileEntity>>,
+    sprite_batch: SpriteBatch,
 }
 
 impl ggez::event::EventHandler<GameError> for GameState {
@@ -26,6 +32,7 @@ impl ggez::event::EventHandler<GameError> for GameState {
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
         graphics::clear(ctx, graphics::Color::from_rgb(130, 90, 44));
+
         self.draw(ctx)?;
         graphics::present(ctx)?;
         Ok(())
@@ -35,10 +42,11 @@ impl ggez::event::EventHandler<GameError> for GameState {
         match self.current_interaction {
             Some(_) => self.interaction_input_handler(key),
             None => match key {
+                /*
                 KeyCode::Space => {
-                    *self = GameState::new();
+                    *self = GameState::new(ctx);
                     self.load_initial_components();
-                }
+                }*/
                 KeyCode::Return => {
                     self.begin_interaction();
                 }
@@ -50,12 +58,15 @@ impl ggez::event::EventHandler<GameError> for GameState {
 }
 
 impl GameState {
-    pub fn new() -> GameState {
+    pub fn new(sprite_batch: SpriteBatch) -> GameState {
         let npcs_components = Vec::new();
         let physics_components = Vec::new();
         let player_physics = generate_physics(Entity::Player);
         let npcs_interactions = Vec::new();
+        let atlas =
+            atlas::Atlas::parse_atlas_json(std::path::Path::new("src/resources/world_atlas.json"));
 
+        let camera = Camera::new(player_physics.position.clone());
         GameState {
             physics_components,
             npcs_components,
@@ -63,11 +74,13 @@ impl GameState {
             current_interaction: None,
             current_focus: None,
             npcs_interactions,
-            camera: Camera::new(player_physics.position.clone()),
+            camera,
             world_size: Size {
                 width: INTIAL_WORLD_W,
                 height: INTIAL_WORLD_H,
             },
+            sprite_batch,
+            tiles: create_tiles(&atlas),
         }
     }
 
@@ -104,6 +117,8 @@ impl GameState {
             &self.current_interaction,
             &self.current_focus,
             &mut self.camera,
+            &mut self.tiles,
+            &mut self.sprite_batch,
             &self.world_size,
         )?;
         Ok(())

@@ -7,13 +7,15 @@ use ecs::{
     constants::{DEFAULT_WINDOW_H, DEFAULT_WINDOW_W},
     game_state::GameState,
 };
-use ggez::conf::FullscreenType;
 use ggez::*;
+use ggez::{conf::FullscreenType, graphics::spritebatch::SpriteBatch};
 
 pub mod ecs {
+    pub mod atlas;
     pub mod constants;
     pub mod game_state;
     pub mod npcs_loader;
+    pub mod tile;
     pub mod components {
         pub mod npc;
     }
@@ -48,15 +50,25 @@ fn main() -> GameResult {
         visible: true,
         resize_on_scale_factor_change: true,
     };
-    let (ctx, event_loop) = ContextBuilder::new("wye_2D", "rust_team")
+
+    let path = std::path::PathBuf::from("./src/resources");
+    let (mut ctx, event_loop) = ContextBuilder::new("wye_2D", "rust_team")
         .default_conf(c)
+        .add_resource_path(path)
         .window_mode(window_mode)
         .build()
         .unwrap();
 
     graphics::set_window_title(&ctx, "Welcome to Wyeworks!");
 
-    let mut game_state = GameState::new();
+    let mut game_state = GameState::new(create_batch_sprite(&mut ctx));
     game_state.load_initial_components();
     event::run(ctx, event_loop, game_state);
+}
+
+fn create_batch_sprite(ctx: &mut Context) -> SpriteBatch {
+    let image = graphics::Image::new(ctx, "/world_atlas.png").unwrap();
+    let mut batch = graphics::spritebatch::SpriteBatch::new(image);
+    batch.set_filter(graphics::FilterMode::Nearest);
+    batch
 }

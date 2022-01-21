@@ -1,0 +1,27 @@
+{ "frames": [
+   {
+    "filename": "floor_tile.png",
+    "frame": { "x": 0, "y": 0, "w": 32, "h": 10 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 32, "h": 10 },
+    "sourceSize": { "w": 32, "h": 10 },
+    "duration": 100
+   }
+ ],
+ "meta": {
+  "app": "https://www.aseprite.org/",
+  "version": "1.2.32-x64",
+  "image": "world_atlas.png",
+  "format": "RGBA8888",
+  "size": { "w": 32, "h": 10 },
+  "scale": "1",
+  "frameTags": [
+  ],
+  "layers": [
+   { "name": "Layer 1", "opacity": 255, "blendMode": "normal" }
+  ],
+  "slices": [
+  ]
+ }
+}
