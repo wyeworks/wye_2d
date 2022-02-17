@@ -88,15 +88,10 @@ impl Sprite {
         }
     }
 
-    /// Adds a draw command to the sprite batch.
-    pub fn add_draw_param(&mut self, pos: Point2<f32>) -> graphics::DrawParam {
-        self.draw_params(pos)
-    }
-
-    pub fn draw_params(&self, pos: Point2<f32>) -> graphics::DrawParam {
+    pub fn draw_params(&self, pos: Point2<f32>, scale: Vector2<f32>) -> graphics::DrawParam {
         graphics::DrawParam::new()
             .src(self.rect.clone())
-            .scale(self.scale)
+            .scale(scale)
             .dest(pos)
     }
 

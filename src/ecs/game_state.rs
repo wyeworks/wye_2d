@@ -1,5 +1,6 @@
 use super::{
     atlas::{self},
+    player_sprite::{create_player_sprite, PlayerSprite},
     systems::{camera_system::Camera, physics_system::physics_system::*},
     tile::{create_tiles, TileEntity},
 };
@@ -21,7 +22,10 @@ pub struct GameState {
     camera: Camera,
     world_size: Size,
     tiles: Vec<Box<TileEntity>>,
-    sprite_batch: SpriteBatch,
+    player_sprite_batch: SpriteBatch,
+    world_sprite_batch: SpriteBatch,
+    player_sprite: PlayerSprite,
+    frames: usize,
 }
 
 impl ggez::event::EventHandler<GameError> for GameState {
@@ -33,8 +37,28 @@ impl ggez::event::EventHandler<GameError> for GameState {
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
         graphics::clear(ctx, graphics::Color::from_rgb(130, 90, 44));
 
-        self.draw(ctx)?;
+        render_system::render(
+            ctx,
+            &self.physics_components,
+            &self.player_physics,
+            &self.npcs_components,
+            &self.current_interaction,
+            &self.current_focus,
+            &mut self.camera,
+            &mut self.player_sprite,
+            &mut self.player_sprite_batch,
+            &mut self.tiles,
+            &mut self.world_sprite_batch,
+            &self.world_size,
+            self.frames,
+        )?;
         graphics::present(ctx)?;
+        if (self.frames % 100) == 0 {
+            println!("FPS: {}", ggez::timer::fps(ctx));
+        }
+
+        self.frames += 1;
+
         Ok(())
     }
 
@@ -58,15 +82,18 @@ impl ggez::event::EventHandler<GameError> for GameState {
 }
 
 impl GameState {
-    pub fn new(sprite_batch: SpriteBatch) -> GameState {
+    pub fn new(player_sprite_batch: SpriteBatch, world_sprite_batch: SpriteBatch) -> GameState {
         let npcs_components = Vec::new();
         let physics_components = Vec::new();
         let player_physics = generate_physics(Entity::Player);
         let npcs_interactions = Vec::new();
-        let atlas =
+        let player_atlas =
+            atlas::Atlas::parse_atlas_json(std::path::Path::new("src/resources/player64.json"));
+        let world_atlas =
             atlas::Atlas::parse_atlas_json(std::path::Path::new("src/resources/world_atlas.json"));
 
         let camera = Camera::new(player_physics.position.clone());
+
         GameState {
             physics_components,
             npcs_components,
@@ -79,8 +106,11 @@ impl GameState {
                 width: INTIAL_WORLD_W,
                 height: INTIAL_WORLD_H,
             },
-            sprite_batch,
-            tiles: create_tiles(&atlas),
+            player_sprite_batch,
+            world_sprite_batch,
+            player_sprite: create_player_sprite(&player_atlas),
+            tiles: create_tiles(&world_atlas),
+            frames: 0,
         }
     }
 
@@ -105,22 +135,6 @@ impl GameState {
                 )?;
             }
         }
-        Ok(())
-    }
-
-    pub fn draw(&mut self, ctx: &mut Context) -> GameResult {
-        render_system::render(
-            ctx,
-            &self.physics_components,
-            &self.player_physics,
-            &self.npcs_components,
-            &self.current_interaction,
-            &self.current_focus,
-            &mut self.camera,
-            &mut self.tiles,
-            &mut self.sprite_batch,
-            &self.world_size,
-        )?;
         Ok(())
     }
 
@@ -204,6 +218,7 @@ impl GameState {
                 },
                 0.0,
                 graphics::Color::WHITE,
+                None,
             ));
             self.add_entity(object_physics, None, None);
         }

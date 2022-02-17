@@ -1,12 +1,14 @@
-use ggez::{graphics::spritebatch::SpriteBatch, mint::Point2};
+use ggez::{
+    graphics::spritebatch::SpriteBatch,
+    mint::{Point2, Vector2},
+};
 
 use super::{
     atlas::{self, Sprite},
+    constants::{INTIAL_WORLD_H, INTIAL_WORLD_W},
     systems::{camera_system::Camera, physics_system::positioning::positioning::Position},
 };
 pub const NUMBER_OF_TILES: u8 = 3;
-pub const INTIAL_WORLD_W: f32 = 2000.0;
-pub const INTIAL_WORLD_H: f32 = 1000.0;
 pub struct TileEntity {
     pub sprite: Sprite,
     pub position: Point2<f32>,
@@ -20,10 +22,13 @@ impl TileEntity {
             y: self.position.y,
         });
 
-        batch.add(s.add_draw_param(Point2 {
-            x: position.x,
-            y: position.y,
-        }));
+        batch.add(s.draw_params(
+            Point2 {
+                x: position.x,
+                y: position.y,
+            },
+            Vector2 { x: 1.0, y: 1.0 },
+        ));
     }
 
     pub fn new(sprite: Sprite, position: (f32, f32)) -> Self {
@@ -57,13 +62,7 @@ pub fn create_tiles(sprites: &atlas::Atlas) -> Vec<Box<TileEntity>> {
         let mut tile_row: Vec<Box<TileEntity>> = (0..INTIAL_WORLD_W as i32)
             .step_by(width as usize)
             .into_iter()
-            .map(|i| {
-                create_tile_scroll(
-                    floor_tile.clone(),
-                    i as f32,
-                    y as f32,
-                )
-            })
+            .map(|i| create_tile_scroll(floor_tile.clone(), i as f32, y as f32))
             .collect();
 
         tiles.append(&mut tile_row);

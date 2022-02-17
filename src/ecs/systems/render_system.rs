@@ -5,8 +5,15 @@ use super::{
         positioning::{Physics, Position, Sizable, Size},
     },
 };
-use crate::ecs::{components::npc::Npc, game_state::EntityIndex, tile::TileEntity};
-use ggez::{*, self, Context, GameResult, graphics::{Color, DrawMode, DrawParam, StrokeOptions, TextFragment, spritebatch::SpriteBatch}, mint::Vector2};
+use crate::ecs::{
+    components::npc::Npc, game_state::EntityIndex, player_sprite::PlayerSprite, tile::TileEntity,
+};
+use ggez::{
+    self,
+    graphics::{spritebatch::SpriteBatch, Color, DrawMode, DrawParam, StrokeOptions, TextFragment},
+    mint::Vector2,
+    Context, GameResult, *,
+};
 
 pub fn render(
     ctx: &mut Context,
@@ -16,24 +23,32 @@ pub fn render(
     current_interaction: &Option<Interaction>,
     interacting_with: &Option<EntityIndex>,
     camera: &mut Camera,
+    player_sprite: &mut PlayerSprite,
+    player_sprite_batch: &mut SpriteBatch,
     tiles: &mut Vec<Box<TileEntity>>,
-    sprite_batch: &mut SpriteBatch,
+    world_sprite_batch: &mut SpriteBatch,
     world_size: &Size,
+    frames: usize,
 ) -> GameResult {
-
     for i in 0..tiles.len() {
-        tiles[i].draw(sprite_batch, camera);
+        tiles[i].draw(world_sprite_batch, camera);
     }
 
     let p = graphics::DrawParam::new().scale(Vector2 { x: 1.0, y: 1.0 });
     {
-        graphics::draw(ctx, sprite_batch, p)?;
-        sprite_batch.clear();
+        graphics::draw(ctx, world_sprite_batch, p)?;
+        world_sprite_batch.clear();
     }
 
     draw_world_bounds(ctx, world_size, camera)?;
 
-    draw_object(ctx, &player_physics, camera)?;
+    // call this draw_object with player physics to draw player bounding box
+    //draw_object(ctx, &player_physics, camera)?;
+    player_sprite.draw(player_sprite_batch, camera, player_physics, frames);
+    {
+        graphics::draw(ctx, player_sprite_batch, p)?;
+        player_sprite_batch.clear();
+    }
 
     for object in physics_components {
         match object {

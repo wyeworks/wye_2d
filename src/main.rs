@@ -15,6 +15,7 @@ pub mod ecs {
     pub mod constants;
     pub mod game_state;
     pub mod npcs_loader;
+    pub mod player_sprite;
     pub mod tile;
     pub mod components {
         pub mod npc;
@@ -61,13 +62,16 @@ fn main() -> GameResult {
 
     graphics::set_window_title(&ctx, "Welcome to Wyeworks!");
 
-    let mut game_state = GameState::new(create_batch_sprite(&mut ctx));
+    let mut game_state = GameState::new(
+        create_batch_sprite(&mut ctx, "/player64.png".to_string()),
+        create_batch_sprite(&mut ctx, "/world_atlas.png".to_string()),
+    );
     game_state.load_initial_components();
     event::run(ctx, event_loop, game_state);
 }
 
-fn create_batch_sprite(ctx: &mut Context) -> SpriteBatch {
-    let image = graphics::Image::new(ctx, "/world_atlas.png").unwrap();
+fn create_batch_sprite(ctx: &mut Context, file_name: String) -> SpriteBatch {
+    let image = graphics::Image::new(ctx, file_name).unwrap();
     let mut batch = graphics::spritebatch::SpriteBatch::new(image);
     batch.set_filter(graphics::FilterMode::Nearest);
     batch

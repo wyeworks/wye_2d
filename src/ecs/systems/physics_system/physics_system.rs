@@ -13,6 +13,7 @@ pub fn generate_physics(entity_type: Entity) -> Physics {
     let size: Size;
     let speed: f32;
     let color: graphics::Color;
+    let direction: Option<Direction>;
 
     match entity_type {
         Entity::Player => {
@@ -23,6 +24,7 @@ pub fn generate_physics(entity_type: Entity) -> Physics {
             };
             speed = INITIAL_PLAYER_SPEED;
             color = graphics::Color::from_rgb(0, 171, 169);
+            direction = Some(Direction::Down);
         }
         Entity::Npc => {
             position = Position::from_f32(get_random_position());
@@ -32,6 +34,7 @@ pub fn generate_physics(entity_type: Entity) -> Physics {
             };
             speed = 0.0;
             color = graphics::Color::from_rgb(112, 111, 211);
+            direction = None;
         }
     }
 
@@ -40,6 +43,8 @@ pub fn generate_physics(entity_type: Entity) -> Physics {
         size,
         speed,
         color,
+        direction,
+        walking: false,
     }
 }
 
@@ -58,6 +63,9 @@ pub fn update_player_physics(
     camera: &mut Camera,
     world_size: &Size,
 ) -> GameResult {
+    if player_mov_actions.len() == 0 {
+        player_physics.walking = false;
+    }
     for key in player_mov_actions.iter() {
         let mut new_potential_player_physics = player_physics.clone();
         new_potential_player_physics.update_position(ctx, *key, world_size);
@@ -83,6 +91,16 @@ pub fn update_player_physics(
                 None => continue,
             }
         }
+
+        let last_mov_key = player_mov_actions.last().unwrap();
+
+        new_potential_player_physics.direction = match last_mov_key {
+            KeyCode::Up => Some(Direction::Up),
+            KeyCode::Down => Some(Direction::Down),
+            KeyCode::Left => Some(Direction::Left),
+            KeyCode::Right => Some(Direction::Right),
+            _ => player_physics.direction,
+        };
 
         if !player_collides {
             *current_focus = None;

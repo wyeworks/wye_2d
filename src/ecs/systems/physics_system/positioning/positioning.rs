@@ -90,15 +90,25 @@ pub struct Physics {
     pub size: Size,
     pub speed: f32,
     pub color: graphics::Color,
+    pub direction: Option<Direction>,
+    pub walking: bool,
 }
 
 impl Physics {
-    pub fn new(position: Position, size: Size, speed: f32, color: graphics::Color) -> Self {
+    pub fn new(
+        position: Position,
+        size: Size,
+        speed: f32,
+        color: graphics::Color,
+        direction: Option<Direction>,
+    ) -> Self {
         Physics {
             position,
             size,
             speed,
             color,
+            direction,
+            walking: false,
         }
     }
 
@@ -111,7 +121,7 @@ impl Physics {
             KeyCode::Right => self.position.x += self.speed * dt,
             _ => (),
         }
-
+        self.walking = true;
         self.position.clamp_self(
             &self.size,
             &Position {
@@ -120,4 +130,12 @@ impl Physics {
             },
         );
     }
+}
+
+#[derive(Copy, Clone, Debug)]
+pub enum Direction {
+    Up,
+    Down,
+    Left,
+    Right,
 }
