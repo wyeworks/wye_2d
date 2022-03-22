@@ -1,8 +1,8 @@
 use ggez::{event::KeyCode, Context};
 
-use crate::ecs::constants::DEFAULT_CAMERA_OFFSET;
+use crate::ecs::utils::constants::DEFAULT_CAMERA_OFFSET;
 
-use super::physics_system::positioning::positioning::{Position, Size};
+use super::super::physics_system::positioning::positioning::{Position, Size};
 
 pub struct Camera {
     pub position: Position,

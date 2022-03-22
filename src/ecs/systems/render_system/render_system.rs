@@ -1,12 +1,13 @@
 use super::{
-    camera_system::Camera,
-    physics_system::positioning::{
+    super::physics_system::positioning::{
         collision::Interaction,
         positioning::{Physics, Position, Sizable, Size},
     },
+    camera_system::Camera,
 };
 use crate::ecs::{
-    components::npc::Npc, game_state::EntityIndex, player_sprite::PlayerSprite, tile::TileEntity,
+    components::npc::Npc, game_state::EntityIndex, sprites::player_sprite::PlayerSprite,
+    sprites::tile::TileEntity,
 };
 use ggez::{
     self,

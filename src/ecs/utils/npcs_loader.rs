@@ -1,7 +1,7 @@
 use std::fs::read_to_string;
 use std::path::Path;
 
-use super::systems::physics_system::positioning::collision::Interaction;
+use super::super::systems::physics_system::positioning::collision::Interaction;
 
 #[derive(Deserialize, Debug)]
 pub struct NpcJson {

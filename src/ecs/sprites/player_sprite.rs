@@ -4,8 +4,10 @@ use ggez::{
 };
 
 use super::{
+    super::systems::{
+        physics_system::positioning::positioning::*, render_system::camera_system::Camera,
+    },
     atlas::{self, Sprite},
-    systems::{camera_system::Camera, physics_system::positioning::positioning::*},
 };
 
 pub struct PlayerSprite {

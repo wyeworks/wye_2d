@@ -4,23 +4,28 @@ extern crate serde;
 extern crate serde_json;
 
 use ecs::{
-    constants::{DEFAULT_WINDOW_H, DEFAULT_WINDOW_W},
     game_state::GameState,
+    utils::constants::{DEFAULT_WINDOW_H, DEFAULT_WINDOW_W},
 };
+use ggez::conf::FullscreenType;
 use ggez::*;
-use ggez::{conf::FullscreenType, graphics::spritebatch::SpriteBatch};
 
 pub mod ecs {
-    pub mod atlas;
-    pub mod constants;
-    pub mod game_state;
-    pub mod npcs_loader;
-    pub mod player_sprite;
-    pub mod tile;
     pub mod components {
         pub mod npc;
     }
+
+    pub mod sprites {
+        pub mod atlas;
+        pub mod player_sprite;
+        pub mod tile;
+    }
+
     pub mod systems {
+        pub mod input_system {
+            pub mod player_input_system;
+        }
+
         pub mod physics_system {
             pub mod physics_system;
             pub mod positioning {
@@ -28,10 +33,18 @@ pub mod ecs {
                 pub mod positioning;
             }
         }
-        pub mod camera_system;
-        pub mod player_input_system;
-        pub mod render_system;
+        pub mod render_system {
+            pub mod camera_system;
+            pub mod render_system;
+        }
     }
+
+    pub mod utils {
+        pub mod constants;
+        pub mod npcs_loader;
+    }
+
+    pub mod game_state;
 }
 
 fn main() -> GameResult {
@@ -59,20 +72,8 @@ fn main() -> GameResult {
         .window_mode(window_mode)
         .build()
         .unwrap();
-
     graphics::set_window_title(&ctx, "Welcome to Wyeworks!");
 
-    let mut game_state = GameState::new(
-        create_batch_sprite(&mut ctx, "/player64.png".to_string()),
-        create_batch_sprite(&mut ctx, "/world_atlas.png".to_string()),
-    );
-    game_state.load_initial_components();
+    let game_state = GameState::new(&mut ctx);
     event::run(ctx, event_loop, game_state);
-}
-
-fn create_batch_sprite(ctx: &mut Context, file_name: String) -> SpriteBatch {
-    let image = graphics::Image::new(ctx, file_name).unwrap();
-    let mut batch = graphics::spritebatch::SpriteBatch::new(image);
-    batch.set_filter(graphics::FilterMode::Nearest);
-    batch
 }

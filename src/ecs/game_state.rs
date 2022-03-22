@@ -1,11 +1,15 @@
+use super::utils::constants::*;
+use super::{components::npc::Npc, utils::npcs_loader::load_npcs};
 use super::{
-    atlas::{self},
-    player_sprite::{create_player_sprite, PlayerSprite},
-    systems::{camera_system::Camera, physics_system::physics_system::*},
-    tile::{create_tiles, TileEntity},
+    sprites::atlas::{self},
+    sprites::player_sprite::{create_player_sprite, PlayerSprite},
+    sprites::tile::{create_tiles, TileEntity},
+    systems::{
+        input_system::player_input_system,
+        physics_system::physics_system::*,
+        render_system::{camera_system::Camera, render_system},
+    },
 };
-use super::{components::npc::Npc, npcs_loader::load_npcs};
-use super::{constants::*, systems::*};
 use crate::ecs::systems::physics_system::positioning::{collision::Interaction, positioning::*};
 use ggez::*;
 use ggez::{event::*, graphics::spritebatch::SpriteBatch};
@@ -30,7 +34,21 @@ pub struct GameState {
 
 impl ggez::event::EventHandler<GameError> for GameState {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
-        self.update(ctx)?;
+        let player_mov_actions = player_input_system::handle_input(ctx);
+        match self.current_interaction {
+            Some(_) => (),
+            None => {
+                update_player_physics(
+                    ctx,
+                    &self.physics_components,
+                    &mut self.current_focus,
+                    &mut self.player_physics,
+                    &player_mov_actions,
+                    &mut self.camera,
+                    &self.world_size,
+                )?;
+            }
+        }
         Ok(())
     }
 
@@ -82,7 +100,7 @@ impl ggez::event::EventHandler<GameError> for GameState {
 }
 
 impl GameState {
-    pub fn new(player_sprite_batch: SpriteBatch, world_sprite_batch: SpriteBatch) -> GameState {
+    pub fn new(ctx: &mut Context) -> GameState {
         let npcs_components = Vec::new();
         let physics_components = Vec::new();
         let player_physics = generate_physics(Entity::Player);
@@ -94,7 +112,10 @@ impl GameState {
 
         let camera = Camera::new(player_physics.position.clone());
 
-        GameState {
+        let player_sprite_batch = create_batch_sprite(ctx, "/player64.png".to_string());
+        let world_sprite_batch = create_batch_sprite(ctx, "/world_atlas.png".to_string());
+
+        let mut game_state = GameState {
             physics_components,
             npcs_components,
             player_physics,
@@ -111,31 +132,14 @@ impl GameState {
             player_sprite: create_player_sprite(&player_atlas),
             tiles: create_tiles(&world_atlas),
             frames: 0,
-        }
+        };
+        game_state.load_initial_components();
+        game_state
     }
 
     pub fn load_initial_components(&mut self) {
         self.add_npcs();
         self.add_innanimate_objects();
-    }
-
-    pub fn update(&mut self, ctx: &mut Context) -> GameResult {
-        let player_mov_actions = player_input_system::handle_input(ctx);
-        match self.current_interaction {
-            Some(_) => (),
-            None => {
-                update_player_physics(
-                    ctx,
-                    &self.physics_components,
-                    &mut self.current_focus,
-                    &mut self.player_physics,
-                    &player_mov_actions,
-                    &mut self.camera,
-                    &self.world_size,
-                )?;
-            }
-        }
-        Ok(())
     }
 
     pub fn begin_interaction(&mut self) {
@@ -234,4 +238,11 @@ impl GameState {
         self.npcs_components.push(npc);
         self.npcs_interactions.push(interaction);
     }
+}
+
+fn create_batch_sprite(ctx: &mut Context, file_name: String) -> SpriteBatch {
+    let image = graphics::Image::new(ctx, file_name).unwrap();
+    let mut batch = graphics::spritebatch::SpriteBatch::new(image);
+    batch.set_filter(graphics::FilterMode::Nearest);
+    batch
 }

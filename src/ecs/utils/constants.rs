@@ -1,4 +1,4 @@
-use super::systems::physics_system::positioning::positioning::Position;
+use super::super::systems::physics_system::positioning::positioning::Position;
 
 pub const HUMANOID_W: f32 = 30.0;
 pub const HUMANOID_H: f32 = 60.0;
