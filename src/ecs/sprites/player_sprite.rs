@@ -3,11 +3,12 @@ use ggez::{
     mint::{Point2, Vector2},
 };
 
+use super::super::atlas;
 use super::{
     super::systems::{
         physics_system::positioning::positioning::*, render_system::camera_system::Camera,
     },
-    atlas::{self, Sprite},
+    sprite::Sprite,
 };
 
 pub struct PlayerSprite {
@@ -17,6 +18,32 @@ pub struct PlayerSprite {
 }
 
 impl PlayerSprite {
+    pub fn new(atlas: &atlas::Atlas) -> Self {
+        let mut idle_sprites = Vec::new();
+        let mut walking_sprites = Vec::new();
+
+        for direction in 0..=3 {
+            idle_sprites
+                .push(atlas.create_sprite(&format!("player-idle-{}", direction).to_string()));
+        }
+        for direction in 0..=3 {
+            let direction_name = direction_from_index(direction);
+            let mut direction_sprites = Vec::new();
+            for animation_frame in 0..=6 {
+                direction_sprites.push(atlas.create_sprite(
+                    &format!("player-{}-{}", direction_name, animation_frame).to_string(),
+                ));
+            }
+            walking_sprites.push(direction_sprites);
+        }
+
+        Self {
+            idle_sprites,
+            position: Point2 { x: 500.0, y: 500.0 },
+            walking_sprites,
+        }
+    }
+
     pub fn draw(
         &mut self,
         batch: &mut SpriteBatch,
@@ -27,14 +54,6 @@ impl PlayerSprite {
         let s: &mut Sprite;
         if !player_physics.walking {
             s = &mut self.idle_sprites[index_from_direction(player_physics.direction.unwrap())];
-            /*
-            s = match player_physics.direction.unwrap() {
-                Direction::Up => &mut self.idle_sprites[0],
-                Direction::Right => &mut self.idle_sprites[1],
-                Direction::Down => &mut self.idle_sprites[2],
-                Direction::Left => &mut self.idle_sprites[3],
-            };
-            */
         } else {
             s = match player_physics.direction.unwrap() {
                 Direction::Up => {
@@ -60,53 +79,15 @@ impl PlayerSprite {
 
         batch.add(s.draw_params(
             Point2 {
-                x: position.x - s.width,  // * 2.0 / 2.0,
-                y: position.y - s.height, // * 2.0 / 2.0,
+                x: position.x - s.width,
+                y: position.y - s.height,
             },
             Vector2 { x: 2.0, y: 2.0 },
         ));
     }
-
-    pub fn new(
-        idle_sprites: Vec<Sprite>,
-        walking_sprites: Vec<Vec<Sprite>>,
-        position: (f32, f32),
-    ) -> Self {
-        Self {
-            idle_sprites,
-            position: Point2 {
-                x: position.0,
-                y: position.1,
-            },
-            walking_sprites,
-        }
-    }
 }
 
-pub fn create_player_sprite(atlas: &atlas::Atlas) -> PlayerSprite {
-    let mut player_sprites = Vec::new();
-    let mut walking_sprites = Vec::new();
-
-    for direction in 0..=3 {
-        player_sprites.push(atlas.create_sprite(&format!("player-idle-{}", direction).to_string()));
-    }
-    for direction in 0..=3 {
-        let direction_name = direction_from_index(direction);
-        let mut direction_sprites = Vec::new();
-        for animation_frame in 0..=6 {
-            direction_sprites.push(atlas.create_sprite(
-                &format!("player-{}-{}", direction_name, animation_frame).to_string(),
-            ));
-        }
-        walking_sprites.push(direction_sprites);
-    }
-    PlayerSprite::new(
-        player_sprites,
-        walking_sprites,
-        (500.0, 500.0 /*position.x, position.y*/),
-    )
-}
-
+// to be refactored
 fn index_from_direction(direction: Direction) -> usize {
     match direction {
         Direction::Up => 0,

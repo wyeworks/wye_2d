@@ -5,10 +5,7 @@ use super::{
     },
     camera_system::Camera,
 };
-use crate::ecs::{
-    components::npc::Npc, game_state::EntityIndex, sprites::player_sprite::PlayerSprite,
-    sprites::tile::TileEntity,
-};
+use crate::ecs::{components::npc::Npc, game_state::EntityIndex, sprites::{player_sprite::PlayerSprite, tile_sprite::TileSprite}};
 use ggez::{
     self,
     graphics::{spritebatch::SpriteBatch, Color, DrawMode, DrawParam, StrokeOptions, TextFragment},
@@ -26,7 +23,7 @@ pub fn render(
     camera: &mut Camera,
     player_sprite: &mut PlayerSprite,
     player_sprite_batch: &mut SpriteBatch,
-    tiles: &mut Vec<Box<TileEntity>>,
+    tiles: &mut Vec<Box<TileSprite>>,
     world_sprite_batch: &mut SpriteBatch,
     world_size: &Size,
     frames: usize,

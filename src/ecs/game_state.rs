@@ -1,9 +1,9 @@
-use super::utils::constants::*;
-use super::{components::npc::Npc, utils::npcs_loader::load_npcs};
+use super::{components::npc::Npc, utils::npcs_json_loader::load_npcs};
+use super::{atlas::Atlas, utils::constants::*};
 use super::{
-    sprites::atlas::{self},
-    sprites::player_sprite::{create_player_sprite, PlayerSprite},
-    sprites::tile::{create_tiles, TileEntity},
+    atlas::{self},
+    sprites::player_sprite::{PlayerSprite},
+    sprites::tile_sprite::{create_tiles, TileSprite},
     systems::{
         input_system::player_input_system,
         physics_system::physics_system::*,
@@ -25,7 +25,7 @@ pub struct GameState {
     npcs_interactions: Vec<Option<Interaction>>,
     camera: Camera,
     world_size: Size,
-    tiles: Vec<Box<TileEntity>>,
+    tiles: Vec<Box<TileSprite>>,
     player_sprite_batch: SpriteBatch,
     world_sprite_batch: SpriteBatch,
     player_sprite: PlayerSprite,
@@ -84,11 +84,6 @@ impl ggez::event::EventHandler<GameError> for GameState {
         match self.current_interaction {
             Some(_) => self.interaction_input_handler(key),
             None => match key {
-                /*
-                KeyCode::Space => {
-                    *self = GameState::new(ctx);
-                    self.load_initial_components();
-                }*/
                 KeyCode::Return => {
                     self.begin_interaction();
                 }
@@ -105,15 +100,16 @@ impl GameState {
         let physics_components = Vec::new();
         let player_physics = generate_physics(Entity::Player);
         let npcs_interactions = Vec::new();
+        
         let player_atlas =
-            atlas::Atlas::parse_atlas_json(std::path::Path::new("src/resources/player64.json"));
+            Atlas::parse_atlas_json(std::path::Path::new("src/resources/player64.json"));
+        let player_sprite_batch = atlas::create_batch_sprite(ctx, "/player64.png".to_string());
+
         let world_atlas =
-            atlas::Atlas::parse_atlas_json(std::path::Path::new("src/resources/world_atlas.json"));
+            Atlas::parse_atlas_json(std::path::Path::new("src/resources/world_atlas.json"));
+        let world_sprite_batch = atlas::create_batch_sprite(ctx, "/world_atlas.png".to_string());
 
         let camera = Camera::new(player_physics.position.clone());
-
-        let player_sprite_batch = create_batch_sprite(ctx, "/player64.png".to_string());
-        let world_sprite_batch = create_batch_sprite(ctx, "/world_atlas.png".to_string());
 
         let mut game_state = GameState {
             physics_components,
@@ -129,7 +125,7 @@ impl GameState {
             },
             player_sprite_batch,
             world_sprite_batch,
-            player_sprite: create_player_sprite(&player_atlas),
+            player_sprite: PlayerSprite::new(&player_atlas),
             tiles: create_tiles(&world_atlas),
             frames: 0,
         };
@@ -137,12 +133,8 @@ impl GameState {
         game_state
     }
 
-    pub fn load_initial_components(&mut self) {
-        self.add_npcs();
-        self.add_innanimate_objects();
-    }
-
-    pub fn begin_interaction(&mut self) {
+    // Interactions
+    fn begin_interaction(&mut self) {
         match self.current_focus {
             Some(focused_entity_id) => match &self.npcs_components[focused_entity_id] {
                 Some(_) => {
@@ -187,12 +179,18 @@ impl GameState {
         }
     }
 
-    pub fn end_interaction(&mut self) {
+    fn end_interaction(&mut self) {
         self.current_interaction = None;
         self.current_focus = None;
     }
 
-    pub fn add_npcs(&mut self) {
+    // Components loading
+    fn load_initial_components(&mut self) {
+        self.add_npcs();
+        self.add_first_desk_row();
+    }
+
+    fn add_npcs(&mut self) {
         let npcs = load_npcs();
         for npc_data in npcs.iter() {
             self.add_entity(
@@ -205,11 +203,7 @@ impl GameState {
         }
     }
 
-    pub fn add_innanimate_objects(&mut self) {
-        self.add_first_desk_row();
-    }
-
-    pub fn add_first_desk_row(&mut self) {
+    fn add_first_desk_row(&mut self) {
         for n in 2..6 {
             let object_physics = Some(Physics::new(
                 Position {
@@ -228,7 +222,7 @@ impl GameState {
         }
     }
 
-    pub fn add_entity(
+    fn add_entity(
         &mut self,
         physics: Option<Physics>,
         npc: Option<Npc>,
@@ -238,11 +232,4 @@ impl GameState {
         self.npcs_components.push(npc);
         self.npcs_interactions.push(interaction);
     }
-}
-
-fn create_batch_sprite(ctx: &mut Context, file_name: String) -> SpriteBatch {
-    let image = graphics::Image::new(ctx, file_name).unwrap();
-    let mut batch = graphics::spritebatch::SpriteBatch::new(image);
-    batch.set_filter(graphics::FilterMode::Nearest);
-    batch
 }

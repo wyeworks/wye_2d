@@ -14,11 +14,10 @@ pub mod ecs {
     pub mod components {
         pub mod npc;
     }
-
     pub mod sprites {
-        pub mod atlas;
         pub mod player_sprite;
-        pub mod tile;
+        pub mod sprite;
+        pub mod tile_sprite;
     }
 
     pub mod systems {
@@ -41,9 +40,10 @@ pub mod ecs {
 
     pub mod utils {
         pub mod constants;
-        pub mod npcs_loader;
+        pub mod npcs_json_loader;
     }
 
+    pub mod atlas;
     pub mod game_state;
 }
 
