@@ -1,15 +1,15 @@
-use super::{components::npc::Npc, utils::npcs_json_loader::load_npcs};
 use super::{atlas::Atlas, utils::constants::*};
 use super::{
     atlas::{self},
-    sprites::player_sprite::{PlayerSprite},
+    sprites::player_sprite::PlayerSprite,
     sprites::tile_sprite::{create_tiles, TileSprite},
     systems::{
-        input_system::player_input_system,
+        input_system::input_system,
         physics_system::physics_system::*,
         render_system::{camera_system::Camera, render_system},
     },
 };
+use super::{components::npc::Npc, utils::npcs_json_loader::load_npcs};
 use crate::ecs::systems::physics_system::positioning::{collision::Interaction, positioning::*};
 use ggez::*;
 use ggez::{event::*, graphics::spritebatch::SpriteBatch};
@@ -18,11 +18,11 @@ pub type EntityIndex = usize;
 
 pub struct GameState {
     physics_components: Vec<Option<Physics>>,
-    npcs_components: Vec<Option<Npc>>,
+    pub npcs_components: Vec<Option<Npc>>,
     player_physics: Physics,
-    current_interaction: Option<Interaction>,
-    current_focus: Option<EntityIndex>,
-    npcs_interactions: Vec<Option<Interaction>>,
+    pub current_interaction: Option<Interaction>,
+    pub current_focus: Option<EntityIndex>,
+    pub npcs_interactions: Vec<Option<Interaction>>,
     camera: Camera,
     world_size: Size,
     tiles: Vec<Box<TileSprite>>,
@@ -34,7 +34,7 @@ pub struct GameState {
 
 impl ggez::event::EventHandler<GameError> for GameState {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
-        let player_mov_actions = player_input_system::handle_input(ctx);
+        let player_mov_actions = input_system::player_movements(ctx);
         match self.current_interaction {
             Some(_) => (),
             None => {
@@ -81,16 +81,7 @@ impl ggez::event::EventHandler<GameError> for GameState {
     }
 
     fn key_down_event(&mut self, _ctx: &mut Context, key: KeyCode, _mods: KeyMods, _: bool) {
-        match self.current_interaction {
-            Some(_) => self.interaction_input_handler(key),
-            None => match key {
-                KeyCode::Return => {
-                    self.begin_interaction();
-                }
-
-                _ => (),
-            },
-        }
+        self.current_interaction = input_system::key_down_event_interaction(self, key);
     }
 }
 
@@ -100,7 +91,7 @@ impl GameState {
         let physics_components = Vec::new();
         let player_physics = generate_physics(Entity::Player);
         let npcs_interactions = Vec::new();
-        
+
         let player_atlas =
             Atlas::parse_atlas_json(std::path::Path::new("src/resources/player64.json"));
         let player_sprite_batch = atlas::create_batch_sprite(ctx, "/player64.png".to_string());
@@ -131,57 +122,6 @@ impl GameState {
         };
         game_state.load_initial_components();
         game_state
-    }
-
-    // Interactions
-    fn begin_interaction(&mut self) {
-        match self.current_focus {
-            Some(focused_entity_id) => match &self.npcs_components[focused_entity_id] {
-                Some(_) => {
-                    self.current_interaction = self.npcs_interactions[focused_entity_id].clone()
-                }
-                None => (),
-            },
-            None => (),
-        }
-    }
-
-    fn interaction_input_handler(&mut self, key: KeyCode) {
-        match key {
-            KeyCode::Up | KeyCode::Down | KeyCode::Return => self.update_interaction(key),
-            KeyCode::Escape => self.end_interaction(),
-            _ => (),
-        }
-    }
-
-    fn update_interaction(&mut self, action: KeyCode) {
-        let mut interaction = self.current_interaction.as_mut().unwrap();
-        match &interaction.sub_interactions {
-            Some(sub_interactions) => match action {
-                KeyCode::Up => {
-                    if interaction.hovered_option != 0 {
-                        interaction.hovered_option -= 1;
-                    }
-                }
-                KeyCode::Down => {
-                    if interaction.hovered_option < interaction.options.as_ref().unwrap().len() - 1
-                    {
-                        interaction.hovered_option += 1;
-                    }
-                }
-                KeyCode::Return => {
-                    self.current_interaction =
-                        Some(sub_interactions[interaction.hovered_option].clone())
-                }
-                _ => (),
-            },
-            None => self.current_interaction = None,
-        }
-    }
-
-    fn end_interaction(&mut self) {
-        self.current_interaction = None;
-        self.current_focus = None;
     }
 
     // Components loading

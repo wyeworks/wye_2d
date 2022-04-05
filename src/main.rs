@@ -22,7 +22,7 @@ pub mod ecs {
 
     pub mod systems {
         pub mod input_system {
-            pub mod player_input_system;
+            pub mod input_system;
         }
 
         pub mod physics_system {
