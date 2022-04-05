@@ -1,5 +1,5 @@
 use ggez::{event::KeyCode, graphics, Context};
-
+use strum_macros::{Display, EnumIter, EnumString, IntoStaticStr};
 #[derive(Copy, Clone, Debug)]
 pub struct Position {
     pub x: f32,
@@ -132,10 +132,25 @@ impl Physics {
     }
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Hash, Eq, Display, EnumString, IntoStaticStr, EnumIter, PartialEq)]
 pub enum Direction {
+    #[strum(serialize = "up")]
     Up,
+    #[strum(serialize = "down")]
     Down,
+    #[strum(serialize = "left")]
     Left,
+    #[strum(serialize = "right")]
     Right,
+}
+
+impl Direction {
+    pub fn to_index(self) -> usize {
+        match self {
+            Direction::Up => 0,
+            Direction::Right => 1,
+            Direction::Down => 2,
+            Direction::Left => 3,
+        }
+    }
 }
