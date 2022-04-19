@@ -1,11 +1,14 @@
-use super::{
-    super::physics_system::positioning::{
-        collision::Interaction,
-        positioning::{Physics, Position, Sizable, Size},
-    },
-    camera_system::Camera,
+use super::super::{
+    input_system::interaction::*,
+    physics_system::physics::*,
+    render_system::camera_system::Camera,
 };
-use crate::ecs::{components::npc::Npc, game_state::EntityIndex, sprites::{player_sprite::PlayerSprite, tile_sprite::TileSprite}};
+
+use crate::ecs::{
+    components::npc::Npc,
+    game_state::EntityIndex,
+    sprites::{player_sprite::PlayerSprite, tile_sprite::TileSprite},
+};
 use ggez::{
     self,
     graphics::{spritebatch::SpriteBatch, Color, DrawMode, DrawParam, StrokeOptions, TextFragment},
@@ -101,8 +104,8 @@ pub fn draw_object(ctx: &mut Context, physics: &Physics, camera: &Camera) -> Gam
     let rect = graphics::Rect::new(
         position_in_camera.x - physics.size.w_half(),
         position_in_camera.y - physics.size.h_half(),
-        physics.get_size().width,
-        physics.get_size().height,
+        physics.size.width,
+        physics.size.height,
     );
 
     let rect_mesh = graphics::Mesh::new_rectangle(ctx, DrawMode::fill(), rect, physics.color)?;

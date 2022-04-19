@@ -5,26 +5,28 @@ use super::{
     sprites::tile_sprite::{create_tiles, TileSprite},
     systems::{
         input_system::input_system,
+        input_system::interaction::*,
+        physics_system::physics::*,
         physics_system::physics_system::*,
         render_system::{camera_system::Camera, render_system},
     },
 };
 use super::{components::npc::Npc, utils::npcs_json_loader::load_npcs};
-use crate::ecs::systems::physics_system::positioning::{collision::Interaction, positioning::*};
 use ggez::*;
 use ggez::{event::*, graphics::spritebatch::SpriteBatch};
 
 pub type EntityIndex = usize;
 
+// #[derive(Copy, Clone)]
 pub struct GameState {
-    physics_components: Vec<Option<Physics>>,
+    pub physics_components: Vec<Option<Physics>>,
     pub npcs_components: Vec<Option<Npc>>,
-    player_physics: Physics,
+    pub player_physics: Physics,
     pub current_interaction: Option<Interaction>,
     pub current_focus: Option<EntityIndex>,
     pub npcs_interactions: Vec<Option<Interaction>>,
-    camera: Camera,
-    world_size: Size,
+    pub camera: Camera,
+    pub world_size: Size,
     tiles: Vec<Box<TileSprite>>,
     player_sprite_batch: SpriteBatch,
     world_sprite_batch: SpriteBatch,
@@ -38,18 +40,14 @@ impl ggez::event::EventHandler<GameError> for GameState {
         match self.current_interaction {
             Some(_) => (),
             None => {
-                update_player_physics(
-                    ctx,
-                    &self.physics_components,
-                    &mut self.current_focus,
-                    &mut self.player_physics,
-                    &player_mov_actions,
-                    &mut self.camera,
-                    &self.world_size,
-                )?;
+                self = update_player_physics(ctx, &player_mov_actions, self);
             }
         }
         Ok(())
+
+        // update player_physics
+        // update posicion camera
+        // update de current_focus
     }
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
@@ -70,11 +68,8 @@ impl ggez::event::EventHandler<GameError> for GameState {
             &self.world_size,
             self.frames,
         )?;
-        graphics::present(ctx)?;
-        if (self.frames % 100) == 0 {
-            println!("FPS: {}", ggez::timer::fps(ctx));
-        }
 
+        graphics::present(ctx)?;
         self.frames += 1;
 
         Ok(())
@@ -89,7 +84,7 @@ impl GameState {
     pub fn new(ctx: &mut Context) -> GameState {
         let npcs_components = Vec::new();
         let physics_components = Vec::new();
-        let player_physics = generate_physics(Entity::Player);
+        let player_physics = initial_player_physics();
         let npcs_interactions = Vec::new();
 
         let player_atlas =
@@ -134,7 +129,7 @@ impl GameState {
         let npcs = load_npcs();
         for npc_data in npcs.iter() {
             self.add_entity(
-                Some(generate_physics(Entity::Npc)),
+                Some(generate_npc_physics()),
                 Some(Npc {
                     name: npc_data.name.clone(),
                 }),

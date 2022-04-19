@@ -23,14 +23,12 @@ pub mod ecs {
     pub mod systems {
         pub mod input_system {
             pub mod input_system;
+            pub mod interaction;
         }
 
         pub mod physics_system {
+            pub mod physics;
             pub mod physics_system;
-            pub mod positioning {
-                pub mod collision;
-                pub mod positioning;
-            }
         }
         pub mod render_system {
             pub mod camera_system;

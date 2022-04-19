@@ -4,9 +4,11 @@ use ggez::{
 };
 
 use super::super::atlas;
-use super::{super::systems::{
-        physics_system::positioning::positioning::Position, render_system::camera_system::Camera,
-    }, super::utils::constants::{INTIAL_WORLD_H, INTIAL_WORLD_W}, sprite::Sprite};
+use super::{
+    super::systems::{physics_system::physics::Position, render_system::camera_system::Camera},
+    super::utils::constants::{INTIAL_WORLD_H, INTIAL_WORLD_W},
+    sprite::Sprite,
+};
 pub const NUMBER_OF_TILES: u8 = 3;
 pub struct TileSprite {
     pub sprite: Sprite,

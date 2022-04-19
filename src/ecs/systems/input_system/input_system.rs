@@ -2,7 +2,7 @@ use ggez::*;
 use ggez::{event::KeyCode, input::keyboard};
 
 use crate::ecs::{
-    game_state::GameState, systems::physics_system::positioning::collision::Interaction,
+    game_state::GameState, systems::input_system::interaction::Interaction,
 };
 
 pub fn player_movements(ctx: &mut Context) -> Vec<KeyCode> {

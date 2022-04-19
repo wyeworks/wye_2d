@@ -8,7 +8,7 @@ use strum::IntoEnumIterator;
 use super::super::atlas;
 use super::{
     super::systems::{
-        physics_system::positioning::positioning::*, render_system::camera_system::Camera,
+        physics_system::physics::*, render_system::camera_system::Camera,
     },
     sprite::Sprite,
 };
