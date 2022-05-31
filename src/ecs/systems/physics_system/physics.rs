@@ -10,6 +10,7 @@ pub struct Physics {
     pub color: graphics::Color,
     pub direction: Option<Direction>,
     pub walking: bool,
+    pub current_focus: Option<usize>,
 }
 
 impl Physics {
@@ -19,6 +20,7 @@ impl Physics {
         speed: f32,
         color: graphics::Color,
         direction: Option<Direction>,
+        current_focus: Option<usize>,
     ) -> Self {
         Physics {
             position,
@@ -27,6 +29,7 @@ impl Physics {
             color,
             direction,
             walking: false,
+            current_focus
         }
     }
 

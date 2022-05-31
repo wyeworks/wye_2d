@@ -8,7 +8,7 @@ use super::{
         input_system::interaction::*,
         physics_system::physics::*,
         physics_system::physics_system::*,
-        render_system::{camera_system::Camera, render_system},
+        render_system::{camera_system::*, render_system},
     },
 };
 use super::{components::npc::Npc, utils::npcs_json_loader::load_npcs};
@@ -23,7 +23,6 @@ pub struct GameState {
     pub npcs_components: Vec<Option<Npc>>,
     pub player_physics: Physics,
     pub current_interaction: Option<Interaction>,
-    pub current_focus: Option<EntityIndex>,
     pub npcs_interactions: Vec<Option<Interaction>>,
     pub camera: Camera,
     pub world_size: Size,
@@ -37,17 +36,17 @@ pub struct GameState {
 impl ggez::event::EventHandler<GameError> for GameState {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
         let player_mov_actions = input_system::player_movements(ctx);
+        
         match self.current_interaction {
             Some(_) => (),
             None => {
-                self = update_player_physics(ctx, &player_mov_actions, self);
+                self.player_physics = update_player_physics(ctx, &player_mov_actions, &self.player_physics, &self.physics_components, &self.world_size);
+                self.camera = maybe_update_camera(ctx, &self.camera, &self.player_physics, &self.world_size);
+                // update current focus -> Quedó pero no anda aún
             }
         }
-        Ok(())
 
-        // update player_physics
-        // update posicion camera
-        // update de current_focus
+        Ok(())
     }
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
@@ -59,7 +58,7 @@ impl ggez::event::EventHandler<GameError> for GameState {
             &self.player_physics,
             &self.npcs_components,
             &self.current_interaction,
-            &self.current_focus,
+            &self.player_physics.current_focus,
             &mut self.camera,
             &mut self.player_sprite,
             &mut self.player_sprite_batch,
@@ -102,7 +101,6 @@ impl GameState {
             npcs_components,
             player_physics,
             current_interaction: None,
-            current_focus: None,
             npcs_interactions,
             camera,
             world_size: Size {
@@ -152,6 +150,7 @@ impl GameState {
                 0.0,
                 graphics::Color::WHITE,
                 None,
+                None
             ));
             self.add_entity(object_physics, None, None);
         }

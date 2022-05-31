@@ -37,7 +37,7 @@ fn interaction_input_handler(game_state: &GameState, key: KeyCode) -> Option<Int
 }
 
 fn begin_interaction(game_state: &GameState) -> Option<Interaction> {
-    match game_state.current_focus {
+    match game_state.player_physics.current_focus {
         Some(focused_entity_id) => match &game_state.npcs_components[focused_entity_id] {
             Some(_) => game_state.npcs_interactions[focused_entity_id].clone(),
             None => None,
