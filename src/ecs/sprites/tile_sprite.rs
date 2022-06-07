@@ -5,7 +5,7 @@ use ggez::{
 
 use super::super::atlas;
 use super::{
-    super::systems::{physics_system::physics::Position, render_system::camera_system::Camera},
+    super::systems::{physics_system::physics::Position, render_system::camera::Camera},
     super::utils::constants::{INTIAL_WORLD_H, INTIAL_WORLD_W},
     sprite::Sprite,
 };

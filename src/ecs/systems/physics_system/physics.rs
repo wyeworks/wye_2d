@@ -2,7 +2,7 @@ use ggez::{event::KeyCode, graphics, Context};
 use strum_macros::{Display, EnumIter, EnumString, IntoStaticStr};
 
 // Position and Size could be replaced by a Rect
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct Physics {
     pub position: Position,
     pub size: Size,
@@ -81,7 +81,7 @@ impl Position {
     }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct Size {
     pub width: f32,
     pub height: f32,

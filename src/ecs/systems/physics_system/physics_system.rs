@@ -65,7 +65,7 @@ pub fn update_player_physics(
                 Some(physics) => {
                     if objects_collide(&new_potential_player_physics, &physics) {
                         player_collides = true;
-                        new_potential_player_physics.current_focus = Some(index);
+                        new_player_physics.current_focus = Some(index);
                     };
                 }
                 None => continue,
@@ -92,14 +92,10 @@ pub fn update_player_physics(
 }
 
 fn objects_collide(a: &Physics, b: &Physics) -> bool {
+
     let collision = a.position.x - a.size.w_half() < b.position.x + b.size.w_half()
         && a.position.x + a.size.w_half() > b.position.x - b.size.w_half()
         && a.position.y - a.size.h_half() < b.position.y + b.size.h_half()
         && a.size.h_half() + a.position.y > b.position.y - b.size.h_half();
     return collision;
 }
-
-// TO DO
-// - Physics system logic
-// - Render system
-// - Camera system

@@ -31,7 +31,7 @@ pub mod ecs {
             pub mod physics_system;
         }
         pub mod render_system {
-            pub mod camera_system;
+            pub mod camera;
             pub mod render_system;
         }
     }

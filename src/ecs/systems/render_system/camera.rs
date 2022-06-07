@@ -1,8 +1,6 @@
 use ggez::{Context};
-
-use crate::ecs::utils::constants::DEFAULT_CAMERA_OFFSET;
-
 use super::super::physics_system::physics::{Physics, Position, Size, Direction};
+use super::super::super::utils::constants::{DEFAULT_CAMERA_W, DEFAULT_CAMERA_H, DEFAULT_CAMERA_SPEED, DEFAULT_CAMERA_OFFSET};
 
 #[derive(Copy, Clone)]
 pub struct Camera {
@@ -16,10 +14,10 @@ impl Camera {
         Camera {
             position,
             size: Size {
-                width: 1600.0,
-                height: 800.0,
+                width: DEFAULT_CAMERA_W,
+                height: DEFAULT_CAMERA_H,
             },
-            speed: 125.0,
+            speed: DEFAULT_CAMERA_SPEED,
         }
     }
 
@@ -76,17 +74,13 @@ impl Camera {
             || (bottom_boundry && direction == Direction::Down)
             || (right_boundry && direction == Direction::Right))
     }
-}
 
-pub fn maybe_update_camera(ctx: &mut Context, camera: &Camera, player_physics: &Physics, world_size: &Size) -> Camera {
-    let mut new_camera = camera.clone();
-
-    let should_update_camera = new_camera.is_player_approaching_camera_edge(player_physics)
-        && new_camera.is_within_world_bounds(world_size, player_physics.direction.unwrap());
-
-    if should_update_camera {
-        new_camera.update_position(player_physics.direction.unwrap(), ctx);
+    pub fn maybe_update(&mut self, ctx: &mut Context, player_physics: &Physics, world_size: &Size) {
+        let should_update_camera = self.is_player_approaching_camera_edge(player_physics)
+            && self.is_within_world_bounds(world_size, player_physics.direction.unwrap());
+    
+        if should_update_camera {
+            self.update_position(player_physics.direction.unwrap(), ctx);
+        }
     }
-
-    new_camera
 }
