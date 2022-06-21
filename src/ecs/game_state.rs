@@ -1,169 +1,125 @@
-use super::systems::{camera_system::Camera, physics_system::physics_system::*};
-use super::{components::npc::Npc, npcs_loader::load_npcs};
-use super::{constants::*, systems::*};
-use crate::ecs::systems::physics_system::positioning::{collision::Interaction, positioning::*};
-use ggez::event::*;
+use super::{atlas::Atlas, utils::constants::*};
+use super::{
+    atlas::{self},
+    sprites::player_sprite::PlayerSprite,
+    sprites::tile_sprite::{create_tiles, TileSprite},
+    systems::{
+        input_system::input_system,
+        input_system::interaction::*,
+        physics_system::physics::*,
+        physics_system::physics_system::*,
+        render_system::{camera::*, render_system::*},
+    },
+};
+use super::{components::npc::Npc, utils::npcs_json_loader::load_npcs};
 use ggez::*;
+use ggez::{event::*, graphics::spritebatch::SpriteBatch, mint::Vector2};
 
 pub type EntityIndex = usize;
 
+// #[derive(Copy, Clone)]
 pub struct GameState {
-    physics_components: Vec<Option<Physics>>,
-    npcs_components: Vec<Option<Npc>>,
-    player_physics: Physics,
-    current_interaction: Option<Interaction>,
-    current_focus: Option<EntityIndex>,
-    npcs_interactions: Vec<Option<Interaction>>,
-    camera: Camera,
-    world_size: Size,
+    pub physics_components: Vec<Option<Physics>>,
+    pub npcs_components: Vec<Option<Npc>>,
+    pub player_physics: Physics,
+    pub current_interaction: Option<Interaction>,
+    pub npcs_interactions: Vec<Option<Interaction>>,
+    pub camera: Camera,
+    pub world_size: Size,
+    tiles: Vec<Box<TileSprite>>,
+    player_sprite_batch: SpriteBatch,
+    world_sprite_batch: SpriteBatch,
+    player_sprite: PlayerSprite,
+    frames: usize,
 }
 
 impl ggez::event::EventHandler<GameError> for GameState {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
-        self.update(ctx)?;
+        let player_mov_actions = input_system::player_movements(ctx);
+        
+        match self.current_interaction {
+            Some(_) => (),
+            None => {
+                self.player_physics = update_player_physics(ctx, &player_mov_actions, &self.player_physics, &self.physics_components, &self.world_size);
+                self.camera.maybe_update(ctx, &self.player_physics, &self.world_size);
+            }
+        }
+
         Ok(())
     }
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
         graphics::clear(ctx, graphics::Color::from_rgb(130, 90, 44));
-        self.draw(ctx)?;
+
+        let draw_param = graphics::DrawParam::new().scale(Vector2 { x: 1.0, y: 1.0 });
+
+        draw_tiles(ctx, &self.camera, &mut self.tiles, &mut self.world_sprite_batch, draw_param)?;
+        draw_world_bounds(ctx, &self.camera, &self.world_size)?;
+        draw_player(ctx, &self.camera, &self.player_physics, &mut self.player_sprite_batch, &mut self.player_sprite, self.frames, draw_param)?;
+        draw_objects(ctx, &self.camera, &self.physics_components)?;
+        draw_interactions(ctx, &self.physics_components, &self.npcs_components, &self.current_interaction, &self.player_physics.current_focus)?;
+
         graphics::present(ctx)?;
+
+        self.frames += 1;
+
         Ok(())
     }
 
     fn key_down_event(&mut self, _ctx: &mut Context, key: KeyCode, _mods: KeyMods, _: bool) {
-        match self.current_interaction {
-            Some(_) => self.interaction_input_handler(key),
-            None => match key {
-                KeyCode::Space => {
-                    *self = GameState::new();
-                    self.load_initial_components();
-                }
-                KeyCode::Return => {
-                    self.begin_interaction();
-                }
-
-                _ => (),
-            },
-        }
+        self.current_interaction = input_system::key_down_event_interaction(self, key);
     }
 }
 
 impl GameState {
-    pub fn new() -> GameState {
+    pub fn new(ctx: &mut Context) -> GameState {
         let npcs_components = Vec::new();
         let physics_components = Vec::new();
-        let player_physics = generate_physics(Entity::Player);
+        let player_physics = initial_player_physics();
         let npcs_interactions = Vec::new();
 
-        GameState {
+        let player_atlas =
+            Atlas::parse_atlas_json(std::path::Path::new("src/resources/player64.json"));
+        let player_sprite_batch = atlas::create_batch_sprite(ctx, "/player64.png".to_string());
+
+        let world_atlas =
+            Atlas::parse_atlas_json(std::path::Path::new("src/resources/world_atlas.json"));
+        let world_sprite_batch = atlas::create_batch_sprite(ctx, "/world_atlas.png".to_string());
+
+        let camera = Camera::new(player_physics.position.clone());
+
+        let mut game_state = GameState {
             physics_components,
             npcs_components,
             player_physics,
             current_interaction: None,
-            current_focus: None,
             npcs_interactions,
-            camera: Camera::new(player_physics.position.clone()),
+            camera,
             world_size: Size {
                 width: INTIAL_WORLD_W,
                 height: INTIAL_WORLD_H,
             },
-        }
+            player_sprite_batch,
+            world_sprite_batch,
+            player_sprite: PlayerSprite::new(&player_atlas),
+            tiles: create_tiles(&world_atlas),
+            frames: 0,
+        };
+        game_state.load_initial_components();
+        game_state
     }
 
-    pub fn load_initial_components(&mut self) {
+    // Components loading
+    fn load_initial_components(&mut self) {
         self.add_npcs();
-        self.add_innanimate_objects();
+        self.add_first_desk_row();
     }
 
-    pub fn update(&mut self, ctx: &mut Context) -> GameResult {
-        let player_mov_actions = player_input_system::handle_input(ctx);
-        match self.current_interaction {
-            Some(_) => (),
-            None => {
-                update_player_physics(
-                    ctx,
-                    &self.physics_components,
-                    &mut self.current_focus,
-                    &mut self.player_physics,
-                    &player_mov_actions,
-                    &mut self.camera,
-                    &self.world_size,
-                )?;
-            }
-        }
-        Ok(())
-    }
-
-    pub fn draw(&mut self, ctx: &mut Context) -> GameResult {
-        render_system::render(
-            ctx,
-            &self.physics_components,
-            &self.player_physics,
-            &self.npcs_components,
-            &self.current_interaction,
-            &self.current_focus,
-            &mut self.camera,
-            &self.world_size,
-        )?;
-        Ok(())
-    }
-
-    pub fn begin_interaction(&mut self) {
-        match self.current_focus {
-            Some(focused_entity_id) => match &self.npcs_components[focused_entity_id] {
-                Some(_) => {
-                    self.current_interaction = self.npcs_interactions[focused_entity_id].clone()
-                }
-                None => (),
-            },
-            None => (),
-        }
-    }
-
-    fn interaction_input_handler(&mut self, key: KeyCode) {
-        match key {
-            KeyCode::Up | KeyCode::Down | KeyCode::Return => self.update_interaction(key),
-            KeyCode::Escape => self.end_interaction(),
-            _ => (),
-        }
-    }
-
-    fn update_interaction(&mut self, action: KeyCode) {
-        let mut interaction = self.current_interaction.as_mut().unwrap();
-        match &interaction.sub_interactions {
-            Some(sub_interactions) => match action {
-                KeyCode::Up => {
-                    if interaction.hovered_option != 0 {
-                        interaction.hovered_option -= 1;
-                    }
-                }
-                KeyCode::Down => {
-                    if interaction.hovered_option < interaction.options.as_ref().unwrap().len() - 1
-                    {
-                        interaction.hovered_option += 1;
-                    }
-                }
-                KeyCode::Return => {
-                    self.current_interaction =
-                        Some(sub_interactions[interaction.hovered_option].clone())
-                }
-                _ => (),
-            },
-            None => self.current_interaction = None,
-        }
-    }
-
-    pub fn end_interaction(&mut self) {
-        self.current_interaction = None;
-        self.current_focus = None;
-    }
-
-    pub fn add_npcs(&mut self) {
+    fn add_npcs(&mut self) {
         let npcs = load_npcs();
         for npc_data in npcs.iter() {
             self.add_entity(
-                Some(generate_physics(Entity::Npc)),
+                Some(generate_npc_physics()),
                 Some(Npc {
                     name: npc_data.name.clone(),
                 }),
@@ -172,11 +128,7 @@ impl GameState {
         }
     }
 
-    pub fn add_innanimate_objects(&mut self) {
-        self.add_first_desk_row();
-    }
-
-    pub fn add_first_desk_row(&mut self) {
+    fn add_first_desk_row(&mut self) {
         for n in 2..6 {
             let object_physics = Some(Physics::new(
                 Position {
@@ -189,12 +141,14 @@ impl GameState {
                 },
                 0.0,
                 graphics::Color::WHITE,
+                None,
+                None
             ));
             self.add_entity(object_physics, None, None);
         }
     }
 
-    pub fn add_entity(
+    fn add_entity(
         &mut self,
         physics: Option<Physics>,
         npc: Option<Npc>,
@@ -205,3 +159,10 @@ impl GameState {
         self.npcs_interactions.push(interaction);
     }
 }
+
+// TO DO
+// - Dialog boxes (draw interactions and deep)
+// - Sprites 
+//  - re review logic
+//  - desks
+//  - npcs

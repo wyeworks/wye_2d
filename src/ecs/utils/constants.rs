@@ -1,7 +1,7 @@
-use super::systems::physics_system::positioning::positioning::Position;
+use super::super::systems::physics_system::physics::Position;
 
-pub const HUMANOID_W: f32 = 25.0;
-pub const HUMANOID_H: f32 = 25.0;
+pub const HUMANOID_W: f32 = 30.0;
+pub const HUMANOID_H: f32 = 60.0;
 pub const DESK_H: f32 = 70.0;
 pub const DESK_W: f32 = 150.0;
 

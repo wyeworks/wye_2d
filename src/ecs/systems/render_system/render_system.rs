@@ -1,56 +1,35 @@
-use super::{
-    camera_system::Camera,
-    physics_system::positioning::{
-        collision::Interaction,
-        positioning::{Physics, Position, Sizable, Size},
-    },
+use super::super::{
+    input_system::interaction::*, physics_system::physics::*, render_system::camera::Camera,
 };
-use crate::ecs::{components::npc::Npc, game_state::EntityIndex};
+use crate::ecs::{
+    components::npc::Npc,
+    game_state::EntityIndex,
+    sprites::{player_sprite::PlayerSprite, tile_sprite::TileSprite},
+};
 use ggez::{
     self,
-    graphics::{Color, DrawMode, DrawParam, StrokeOptions, TextFragment},
+    graphics::{spritebatch::SpriteBatch, Color, DrawMode, DrawParam, StrokeOptions, TextFragment},
     Context, GameResult, *,
 };
 
-pub fn render(
+pub fn draw_tiles(
     ctx: &mut Context,
-    physics_components: &Vec<Option<Physics>>,
-    player_physics: &Physics,
-    npcs_components: &Vec<Option<Npc>>,
-    current_interaction: &Option<Interaction>,
-    interacting_with: &Option<EntityIndex>,
-    camera: &mut Camera,
-    world_size: &Size,
+    camera: &Camera,
+    tiles: &mut Vec<Box<TileSprite>>,
+    world_sprite_batch: &mut SpriteBatch,
+    draw_param: graphics::DrawParam
 ) -> GameResult {
-    draw_world_bounds(ctx, world_size, camera)?;
-
-    draw_object(ctx, &player_physics, camera)?;
-
-    for object in physics_components {
-        match object {
-            Some(physics) => draw_object(ctx, &physics, camera)?,
-            None => (),
-        }
+    for i in 0..tiles.len() {
+        tiles[i].draw(world_sprite_batch, camera);
     }
 
-    match current_interaction {
-        Some(interaction) => {
-            draw_interaction(
-                npcs_components[interacting_with.unwrap()].as_ref().unwrap(),
-                physics_components[interacting_with.unwrap()]
-                    .as_ref()
-                    .unwrap(),
-                &interaction,
-                ctx,
-            )?;
-        }
-        None => (),
-    }
+    graphics::draw(ctx, world_sprite_batch, draw_param)?;
+    world_sprite_batch.clear();
 
     Ok(())
 }
 
-pub fn draw_world_bounds(ctx: &mut Context, world_size: &Size, camera: &Camera) -> GameResult {
+pub fn draw_world_bounds(ctx: &mut Context, camera: &Camera, world_size: &Size) -> GameResult {
     let rectangle_position = Position {
         x: world_size.w_half(),
         y: world_size.h_half(),
@@ -74,13 +53,41 @@ pub fn draw_world_bounds(ctx: &mut Context, world_size: &Size, camera: &Camera) 
     Ok(())
 }
 
-pub fn draw_object(ctx: &mut Context, physics: &Physics, camera: &Camera) -> GameResult {
+pub fn draw_player(
+    ctx: &mut Context,
+    camera: &Camera,
+    player_physics: &Physics,
+    player_sprite_batch: &mut SpriteBatch,
+    player_sprite: &mut PlayerSprite,
+    frames: usize,
+    draw_param: graphics::DrawParam
+) -> GameResult {
+    player_sprite.draw(player_sprite_batch, camera, player_physics, frames);
+    
+    graphics::draw(ctx, player_sprite_batch, draw_param)?;
+    player_sprite_batch.clear();
+
+    Ok(())
+}
+
+pub fn draw_objects(ctx: &mut Context, camera: &Camera, physics_components: &Vec<Option<Physics>>) -> GameResult {
+    for object in physics_components {
+        match object {
+            Some(physics) => draw_object(ctx, &physics, camera)?,
+            None => (),
+        }
+    }
+
+    Ok(())
+}
+
+fn draw_object(ctx: &mut Context, physics: &Physics, camera: &Camera) -> GameResult {
     let position_in_camera: Position = camera.world_to_screen(&physics.position);
     let rect = graphics::Rect::new(
         position_in_camera.x - physics.size.w_half(),
         position_in_camera.y - physics.size.h_half(),
-        physics.get_size().width,
-        physics.get_size().height,
+        physics.size.width,
+        physics.size.height,
     );
 
     let rect_mesh = graphics::Mesh::new_rectangle(ctx, DrawMode::fill(), rect, physics.color)?;
@@ -90,7 +97,34 @@ pub fn draw_object(ctx: &mut Context, physics: &Physics, camera: &Camera) -> Gam
     Ok(())
 }
 
-pub fn draw_interaction(
+// -------------------------------------------------------------------
+// Will be removed/updated
+
+pub fn draw_interactions(
+    ctx: &mut Context,
+    physics_components: &Vec<Option<Physics>>,
+    npcs_components: &Vec<Option<Npc>>,
+    current_interaction: &Option<Interaction>,
+    interacting_with: &Option<EntityIndex>
+) -> GameResult {
+    match current_interaction {
+        Some(interaction) => {
+            draw_interaction(
+                npcs_components[interacting_with.unwrap()].as_ref().unwrap(),
+                physics_components[interacting_with.unwrap()]
+                    .as_ref()
+                    .unwrap(),
+                &interaction,
+                ctx,
+            )?;
+        }
+        None => (),
+    }
+
+    Ok(())
+}
+
+fn draw_interaction(
     npc_component: &Npc,
     npc_physics: &Physics,
     interaction: &Interaction,
