@@ -161,8 +161,9 @@ impl GameState {
 }
 
 // TO DO
-// - Dialog boxes (draw interactions and deep)
 // - Sprites 
-//  - re review logic
+//  - Interactions boxes 
+//   - dialog box, avatar box
 //  - desks
 //  - npcs
+// - re review logic
