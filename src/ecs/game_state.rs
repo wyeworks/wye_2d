@@ -57,7 +57,7 @@ impl ggez::event::EventHandler<GameError> for GameState {
         draw_world_bounds(ctx, &self.camera, &self.world_size)?;
         draw_player(ctx, &self.camera, &self.player_physics, &mut self.player_sprite_batch, &mut self.player_sprite, self.frames, draw_param)?;
         draw_objects(ctx, &self.camera, &self.physics_components)?;
-        draw_interactions(ctx, &self.physics_components, &self.npcs_components, &self.current_interaction, &self.player_physics.current_focus)?;
+        draw_interactions(ctx, &self.camera.size, &self.npcs_components, &self.current_interaction, &self.player_physics.current_focus)?;
 
         graphics::present(ctx)?;
 
@@ -161,8 +161,9 @@ impl GameState {
 }
 
 // TO DO
-// - Dialog boxes (draw interactions and deep)
 // - Sprites 
-//  - re review logic
+//  - Interactions boxes 
+//   - dialog box, avatar box
 //  - desks
 //  - npcs
+// - re review logic
