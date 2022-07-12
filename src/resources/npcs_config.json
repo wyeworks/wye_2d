@@ -1,7 +1,7 @@
 {
     "npcs": [
         {
-            "id": 1,
+            "id": 0,
             "name": "Julian",
             "main_interaction": {
                 "dialog": "Hi there!",
@@ -20,7 +20,7 @@
             }
         },
         {
-            "id": 2,
+            "id": 1,
             "name": "Mauri",
             "main_interaction": {
                 "dialog": "Hi there!",
@@ -39,7 +39,7 @@
             }
         },
         {
-            "id": 3,
+            "id": 2,
             "name": "Cholee",
             "main_interaction": {
                 "dialog": "Hey!",
@@ -58,7 +58,7 @@
             }
         },
         {
-            "id": 4,
+            "id": 3,
             "name": "Gio",
             "main_interaction": {
                 "dialog": "Que dicee!",
