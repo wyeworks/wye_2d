@@ -2,6 +2,7 @@ use super::{atlas::Atlas, utils::constants::*};
 use super::{
     atlas::{self},
     sprites::player_sprite::PlayerSprite,
+    sprites::npc_sprite::NpcSprite,
     sprites::tile_sprite::{create_tiles, TileSprite},
     systems::{
         input_system::input_system,
@@ -27,9 +28,11 @@ pub struct GameState {
     pub camera: Camera,
     pub world_size: Size,
     tiles: Vec<Box<TileSprite>>,
-    player_sprite_batch: SpriteBatch,
-    world_sprite_batch: SpriteBatch,
     player_sprite: PlayerSprite,
+    player_sprite_batch: SpriteBatch,
+    npcs_sprite: NpcSprite,
+    npcs_sprite_batch: SpriteBatch,
+    world_sprite_batch: SpriteBatch,
     frames: usize,
 }
 
@@ -57,6 +60,7 @@ impl ggez::event::EventHandler<GameError> for GameState {
         draw_world_bounds(ctx, &self.camera, &self.world_size)?;
         draw_player(ctx, &self.camera, &self.player_physics, &mut self.player_sprite_batch, &mut self.player_sprite, self.frames, draw_param)?;
         draw_objects(ctx, &self.camera, &self.physics_components)?;
+        draw_npcs(ctx, &self.camera, &self.physics_components, &self.npcs_components, &mut self.npcs_sprite_batch, &mut self.npcs_sprite, draw_param)?;
         draw_interactions(ctx, &self.camera.size, &self.npcs_components, &self.current_interaction, &self.player_physics.current_focus)?;
 
         graphics::present(ctx)?;
@@ -82,6 +86,10 @@ impl GameState {
             Atlas::parse_atlas_json(std::path::Path::new("src/resources/player64.json"));
         let player_sprite_batch = atlas::create_batch_sprite(ctx, "/player64.png".to_string());
 
+        let npcs_atlas =
+            Atlas::parse_atlas_json(std::path::Path::new("src/resources/npcs64.json"));
+        let npcs_sprite_batch = atlas::create_batch_sprite(ctx, "/npcs64.png".to_string());
+
         let world_atlas =
             Atlas::parse_atlas_json(std::path::Path::new("src/resources/world_atlas.json"));
         let world_sprite_batch = atlas::create_batch_sprite(ctx, "/world_atlas.png".to_string());
@@ -99,9 +107,11 @@ impl GameState {
                 width: INTIAL_WORLD_W,
                 height: INTIAL_WORLD_H,
             },
-            player_sprite_batch,
-            world_sprite_batch,
             player_sprite: PlayerSprite::new(&player_atlas),
+            player_sprite_batch,
+            npcs_sprite: NpcSprite::new(&npcs_atlas),
+            npcs_sprite_batch,
+            world_sprite_batch,
             tiles: create_tiles(&world_atlas),
             frames: 0,
         };
@@ -121,6 +131,7 @@ impl GameState {
             self.add_entity(
                 Some(generate_npc_physics()),
                 Some(Npc {
+                    id: npc_data.id,
                     name: npc_data.name.clone(),
                 }),
                 npc_data.main_interaction.clone(),

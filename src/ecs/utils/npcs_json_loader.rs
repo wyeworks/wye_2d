@@ -15,7 +15,7 @@ struct JsonObject {
 }
 
 pub fn load_npcs() -> Vec<NpcJson> {
-    let json_file_path = Path::new("src/resources/npcs.json");
+    let json_file_path = Path::new("src/resources/npcs_config.json");
     let json_file_str = read_to_string(json_file_path).expect("file not found");
 
     let deserialized_object: JsonObject =

@@ -1,10 +1,11 @@
 use super::super::{
     input_system::interaction::*, physics_system::physics::*, render_system::camera::Camera,
 };
+use super::super::super::utils::constants::NPC_COUNT;
 use crate::ecs::{
     components::npc::Npc,
     game_state::EntityIndex,
-    sprites::{player_sprite::PlayerSprite, tile_sprite::TileSprite},
+    sprites::{player_sprite::PlayerSprite, tile_sprite::TileSprite, npc_sprite::NpcSprite},
 };
 use ggez::{*, self, Context, GameResult, graphics::{Color, DrawMode, DrawParam, Rect, StrokeOptions, TextFragment, spritebatch::SpriteBatch}};
 
@@ -63,6 +64,30 @@ pub fn draw_player(
     graphics::draw(ctx, player_sprite_batch, draw_param)?;
     player_sprite_batch.clear();
 
+    Ok(())
+}
+
+pub fn draw_npcs(
+    ctx: &mut Context, 
+    camera: &Camera, 
+    physics_components: &Vec<Option<Physics>>,
+    npcs_components: &Vec<Option<Npc>>,
+    npcs_sprite_batch: &mut SpriteBatch,
+    npcs_sprite: &mut NpcSprite,
+    draw_param: graphics::DrawParam
+) -> GameResult {
+    for npc_count in 0..NPC_COUNT {
+        npcs_sprite.draw(
+            npcs_sprite_batch, camera, 
+            &physics_components[npc_count as usize].unwrap(), 
+            &npcs_components[npc_count as usize].as_ref().unwrap()
+        );
+    }
+    
+    
+    graphics::draw(ctx, npcs_sprite_batch, draw_param)?;
+    npcs_sprite_batch.clear();
+    
     Ok(())
 }
 
