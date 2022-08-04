@@ -131,7 +131,7 @@ impl GameState {
             self.add_entity(
                 Some(generate_npc_physics()),
                 Some(Npc {
-                    id: npc_data.id.clone(),
+                    id: npc_data.id,
                     name: npc_data.name.clone(),
                 }),
                 npc_data.main_interaction.clone(),
