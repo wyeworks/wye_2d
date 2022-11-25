@@ -1,9 +1,12 @@
 use super::{atlas::Atlas, utils::constants::*};
 use super::{
-    atlas::{self},
-    sprites::player_sprite::PlayerSprite,
-    sprites::npc_sprite::NpcSprite,
-    sprites::tile_sprite::{create_tiles, TileSprite},
+    atlas,
+    sprites::{
+        interface_sprite::InterfaceSprite,
+        npc_sprite::NpcSprite,
+        player_sprite::PlayerSprite,
+        tile_sprite::{create_tiles, TileSprite},
+    },
     systems::{
         input_system::input_system,
         input_system::interaction::*,
@@ -33,13 +36,15 @@ pub struct GameState {
     npcs_sprite: NpcSprite,
     npcs_sprite_batch: SpriteBatch,
     world_sprite_batch: SpriteBatch,
+    interface_sprite: InterfaceSprite,
+    interface_sprite_batch: SpriteBatch,
     frames: usize,
+    //lives state
 }
 
 impl ggez::event::EventHandler<GameError> for GameState {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
         let player_mov_actions = input_system::player_movements(ctx);
-        
         match self.current_interaction {
             Some(_) => (),
             None => {
@@ -62,6 +67,7 @@ impl ggez::event::EventHandler<GameError> for GameState {
         draw_objects(ctx, &self.camera, &self.physics_components)?;
         draw_npcs(ctx, &self.camera, &self.physics_components, &self.npcs_components, &mut self.npcs_sprite_batch, &mut self.npcs_sprite, draw_param)?;
         draw_interactions(ctx, &self.camera.size, &self.npcs_components, &self.current_interaction, &self.player_physics.current_focus)?;
+        draw_lives_counter(ctx, &mut self.interface_sprite_batch, &mut self.interface_sprite, draw_param)?;
 
         graphics::present(ctx)?;
 
@@ -86,13 +92,16 @@ impl GameState {
             Atlas::parse_atlas_json(std::path::Path::new("src/resources/player64.json"));
         let player_sprite_batch = atlas::create_batch_sprite(ctx, "/player64.png".to_string());
 
-        let npcs_atlas =
-            Atlas::parse_atlas_json(std::path::Path::new("src/resources/npcs64.json"));
+        let npcs_atlas = Atlas::parse_atlas_json(std::path::Path::new("src/resources/npcs64.json"));
         let npcs_sprite_batch = atlas::create_batch_sprite(ctx, "/npcs64.png".to_string());
 
         let world_atlas =
             Atlas::parse_atlas_json(std::path::Path::new("src/resources/world_atlas.json"));
         let world_sprite_batch = atlas::create_batch_sprite(ctx, "/world_atlas.png".to_string());
+
+        let interface_atlas =
+        Atlas::parse_atlas_json(std::path::Path::new("src/resources/interface.json"));
+        let interface_sprite_batch = atlas::create_batch_sprite(ctx, "/interface.png".to_string());
 
         let camera = Camera::new(player_physics.position.clone());
 
@@ -112,6 +121,8 @@ impl GameState {
             npcs_sprite: NpcSprite::new(&npcs_atlas),
             npcs_sprite_batch,
             world_sprite_batch,
+            interface_sprite: InterfaceSprite::new(&interface_atlas),
+            interface_sprite_batch,
             tiles: create_tiles(&world_atlas),
             frames: 0,
         };
@@ -170,11 +181,3 @@ impl GameState {
         self.npcs_interactions.push(interaction);
     }
 }
-
-// TO DO
-// - Sprites 
-//  - Interactions boxes 
-//   - dialog box, avatar box
-//  - desks
-//  - npcs
-// - re review logic
