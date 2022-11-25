@@ -19,6 +19,7 @@ pub mod ecs {
         pub mod player_sprite;
         pub mod sprite;
         pub mod tile_sprite;
+        pub mod interface_sprite;
     }
 
     pub mod systems {

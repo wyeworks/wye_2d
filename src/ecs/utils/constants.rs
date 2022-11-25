@@ -23,3 +23,5 @@ pub const DEFAULT_CAMERA_W: f32 = DEFAULT_WINDOW_W;
 pub const DEFAULT_CAMERA_H: f32 = DEFAULT_WINDOW_H;
 
 pub const NPC_COUNT: i32 = 4;
+
+// initial live count

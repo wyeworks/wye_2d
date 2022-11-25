@@ -5,7 +5,7 @@ use super::super::super::utils::constants::NPC_COUNT;
 use crate::ecs::{
     components::npc::Npc,
     game_state::EntityIndex,
-    sprites::{player_sprite::PlayerSprite, tile_sprite::TileSprite, npc_sprite::NpcSprite},
+    sprites::{player_sprite::PlayerSprite, tile_sprite::TileSprite, npc_sprite::NpcSprite, interface_sprite::InterfaceSprite},
 };
 use ggez::{*, self, Context, GameResult, graphics::{Color, DrawMode, DrawParam, Rect, StrokeOptions, TextFragment, spritebatch::SpriteBatch}};
 
@@ -114,6 +114,20 @@ fn draw_object(ctx: &mut Context, physics: &Physics, camera: &Camera) -> GameRes
     let rect_mesh = graphics::Mesh::new_rectangle(ctx, DrawMode::fill(), rect, physics.color)?;
 
     graphics::draw(ctx, &rect_mesh, DrawParam::default())?;
+
+    Ok(())
+}
+
+pub fn draw_lives_counter(
+    ctx: &mut Context,
+    interface_sprite_batch: &mut SpriteBatch,
+    interface_sprite: &mut InterfaceSprite,
+    draw_param: graphics::DrawParam
+) -> GameResult {
+    interface_sprite.draw(interface_sprite_batch);
+    
+    graphics::draw(ctx, interface_sprite_batch, draw_param)?;
+    interface_sprite_batch.clear();
 
     Ok(())
 }
