@@ -5,11 +5,9 @@ use ggez::{
 use std::collections::HashMap;
 use strum::IntoEnumIterator;
 
-use super::super::atlas;
+use super::{super::atlas, draw::Draw};
 use super::{
-    super::systems::{
-        physics_system::physics::*, render_system::camera::Camera,
-    },
+    super::systems::{physics_system::physics::*, render_system::camera::Camera},
     sprite::Sprite,
 };
 
@@ -27,7 +25,9 @@ impl PlayerSprite {
         for direction in Direction::iter() {
             idle_sprites.insert(
                 direction,
-                atlas.create_sprite(&format!("player-idle-{}", Direction::to_index(direction)).to_string()),
+                atlas.create_sprite(
+                    &format!("player-idle-{}", Direction::to_index(direction)).to_string(),
+                ),
             );
         }
 
@@ -50,8 +50,10 @@ impl PlayerSprite {
             walking_sprites,
         }
     }
+}
 
-    pub fn draw(
+impl Draw for PlayerSprite {
+    fn draw(
         &mut self,
         batch: &mut SpriteBatch,
         camera: &Camera,

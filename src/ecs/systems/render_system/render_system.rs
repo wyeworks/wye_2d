@@ -1,20 +1,30 @@
+use super::super::super::utils::constants::NPC_COUNT;
 use super::super::{
     input_system::interaction::*, physics_system::physics::*, render_system::camera::Camera,
 };
-use super::super::super::utils::constants::NPC_COUNT;
 use crate::ecs::{
     components::npc::Npc,
     game_state::EntityIndex,
-    sprites::{player_sprite::PlayerSprite, tile_sprite::TileSprite, npc_sprite::NpcSprite},
+    sprites::{
+        draw::{Draw, DrawComponent},
+        npc_sprite::NpcSprite,
+        tile_sprite::TileSprite,
+    },
 };
-use ggez::{*, self, Context, GameResult, graphics::{Color, DrawMode, DrawParam, Rect, StrokeOptions, TextFragment, spritebatch::SpriteBatch}};
+use ggez::{
+    self,
+    graphics::{
+        spritebatch::SpriteBatch, Color, DrawMode, DrawParam, Rect, StrokeOptions, TextFragment,
+    },
+    Context, GameResult, *,
+};
 
 pub fn draw_tiles(
     ctx: &mut Context,
     camera: &Camera,
     tiles: &mut Vec<Box<TileSprite>>,
     world_sprite_batch: &mut SpriteBatch,
-    draw_param: graphics::DrawParam
+    draw_param: graphics::DrawParam,
 ) -> GameResult {
     for i in 0..tiles.len() {
         tiles[i].draw(world_sprite_batch, camera);
@@ -50,48 +60,35 @@ pub fn draw_world_bounds(ctx: &mut Context, camera: &Camera, world_size: &Size) 
     Ok(())
 }
 
-pub fn draw_player(
+pub fn draw_npcs(
     ctx: &mut Context,
     camera: &Camera,
-    player_physics: &Physics,
-    player_sprite_batch: &mut SpriteBatch,
-    player_sprite: &mut PlayerSprite,
-    frames: usize,
-    draw_param: graphics::DrawParam
-) -> GameResult {
-    player_sprite.draw(player_sprite_batch, camera, player_physics, frames);
-    
-    graphics::draw(ctx, player_sprite_batch, draw_param)?;
-    player_sprite_batch.clear();
-
-    Ok(())
-}
-
-pub fn draw_npcs(
-    ctx: &mut Context, 
-    camera: &Camera, 
     physics_components: &Vec<Option<Physics>>,
     npcs_components: &Vec<Option<Npc>>,
     npcs_sprite_batch: &mut SpriteBatch,
     npcs_sprite: &mut NpcSprite,
-    draw_param: graphics::DrawParam
+    draw_param: graphics::DrawParam,
 ) -> GameResult {
     for npc_count in 0..NPC_COUNT {
         npcs_sprite.draw(
-            npcs_sprite_batch, camera, 
-            &physics_components[npc_count as usize].unwrap(), 
-            &npcs_components[npc_count as usize].as_ref().unwrap()
+            npcs_sprite_batch,
+            camera,
+            &physics_components[npc_count as usize].unwrap(),
+            &npcs_components[npc_count as usize].as_ref().unwrap(),
         );
     }
-    
-    
+
     graphics::draw(ctx, npcs_sprite_batch, draw_param)?;
     npcs_sprite_batch.clear();
-    
+
     Ok(())
 }
 
-pub fn draw_objects(ctx: &mut Context, camera: &Camera, physics_components: &Vec<Option<Physics>>) -> GameResult {
+pub fn draw_objects(
+    ctx: &mut Context,
+    camera: &Camera,
+    physics_components: &Vec<Option<Physics>>,
+) -> GameResult {
     for object in physics_components {
         match object {
             Some(physics) => draw_object(ctx, &physics, camera)?,
@@ -102,7 +99,7 @@ pub fn draw_objects(ctx: &mut Context, camera: &Camera, physics_components: &Vec
     Ok(())
 }
 
-fn draw_object(ctx: &mut Context, physics: &Physics, camera: &Camera) -> GameResult {
+pub fn draw_object(ctx: &mut Context, physics: &Physics, camera: &Camera) -> GameResult {
     let position_in_camera: Position = camera.world_to_screen(&physics.position);
     let rect = graphics::Rect::new(
         position_in_camera.x - physics.size.w_half(),
@@ -118,12 +115,47 @@ fn draw_object(ctx: &mut Context, physics: &Physics, camera: &Camera) -> GameRes
     Ok(())
 }
 
+pub fn draw_sprite<T: Draw>(
+    ctx: &mut Context,
+    camera: &Camera,
+    physics: &Physics,
+    sprite_batch: &mut SpriteBatch,
+    sprite: &mut T,
+    frames: usize,
+    draw_param: graphics::DrawParam,
+) -> GameResult {
+    sprite.draw(sprite_batch, camera, physics, frames);
+
+    graphics::draw(ctx, sprite_batch, draw_param)?;
+    sprite_batch.clear();
+
+    Ok(())
+}
+
+pub fn draw_sprite_component<T: DrawComponent<Component = E>, E>(
+    ctx: &mut Context,
+    camera: &Camera,
+    physics: &Physics,
+    sprite_batch: &mut SpriteBatch,
+    sprite: &mut T,
+    frames: usize,
+    draw_param: graphics::DrawParam,
+    component: &E,
+) -> GameResult {
+    sprite.draw_component(sprite_batch, camera, physics, frames, component);
+
+    graphics::draw(ctx, sprite_batch, draw_param)?;
+    sprite_batch.clear();
+
+    Ok(())
+}
+
 pub fn draw_interactions(
     ctx: &mut Context,
     camera_size: &Size,
     npcs_components: &Vec<Option<Npc>>,
     current_interaction: &Option<Interaction>,
-    interacting_with: &Option<EntityIndex>
+    interacting_with: &Option<EntityIndex>,
 ) -> GameResult {
     match current_interaction {
         Some(interaction) => {
