@@ -1,9 +1,9 @@
-use ggez::*;
-use ggez::{event::KeyCode, input::keyboard};
+pub mod interaction;
+use interaction::Interaction;
 
-use crate::ecs::{
-    game_state::GameState, systems::input_system::interaction::Interaction,
-};
+use ggez::{event::KeyCode, input::keyboard, *};
+
+use crate::ecs::game_state::GameState;
 
 pub fn player_movements(ctx: &mut Context) -> Vec<KeyCode> {
     let player_mov_keys = [KeyCode::Up, KeyCode::Down, KeyCode::Left, KeyCode::Right];

@@ -1,24 +1,20 @@
-use super::{atlas::Atlas, utils::constants::*};
-use super::{
-    atlas::{self},
-    sprites::player_sprite::PlayerSprite,
+use crate::ecs::{
+    atlas::{self, Atlas},
+    components::npc::Npc,
     sprites::npc_sprite::NpcSprite,
+    sprites::player_sprite::PlayerSprite,
     sprites::tile_sprite::{create_tiles, TileSprite},
     systems::{
-        input_system::input_system,
-        input_system::interaction::*,
-        physics_system::physics::*,
-        physics_system::physics_system::*,
-        render_system::{camera::*, render_system::*},
+        input_system::{self, interaction::*},
+        physics_system::{self, physics::*},
+        render_system::{self, camera::*},
     },
+    utils::{constants::*, npcs_json_loader::load_npcs},
 };
-use super::{components::npc::Npc, utils::npcs_json_loader::load_npcs};
-use ggez::*;
-use ggez::{event::*, graphics::spritebatch::SpriteBatch, mint::Vector2};
+use ggez::{event::*, graphics::spritebatch::SpriteBatch, mint::Vector2, *};
 
 pub type EntityIndex = usize;
 
-// #[derive(Copy, Clone)]
 pub struct GameState {
     pub physics_components: Vec<Option<Physics>>,
     pub npcs_components: Vec<Option<Npc>>,
@@ -39,12 +35,19 @@ pub struct GameState {
 impl ggez::event::EventHandler<GameError> for GameState {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
         let player_mov_actions = input_system::player_movements(ctx);
-        
+
         match self.current_interaction {
             Some(_) => (),
             None => {
-                self.player_physics = update_player_physics(ctx, &player_mov_actions, &self.player_physics, &self.physics_components, &self.world_size);
-                self.camera.maybe_update(ctx, &self.player_physics, &self.world_size);
+                self.player_physics = physics_system::update_player_physics(
+                    ctx,
+                    &player_mov_actions,
+                    &self.player_physics,
+                    &self.physics_components,
+                    &self.world_size,
+                );
+                self.camera
+                    .maybe_update(ctx, &self.player_physics, &self.world_size);
             }
         }
 
@@ -56,12 +59,40 @@ impl ggez::event::EventHandler<GameError> for GameState {
 
         let draw_param = graphics::DrawParam::new().scale(Vector2 { x: 1.0, y: 1.0 });
 
-        draw_tiles(ctx, &self.camera, &mut self.tiles, &mut self.world_sprite_batch, draw_param)?;
-        draw_world_bounds(ctx, &self.camera, &self.world_size)?;
-        draw_player(ctx, &self.camera, &self.player_physics, &mut self.player_sprite_batch, &mut self.player_sprite, self.frames, draw_param)?;
-        draw_objects(ctx, &self.camera, &self.physics_components)?;
-        draw_npcs(ctx, &self.camera, &self.physics_components, &self.npcs_components, &mut self.npcs_sprite_batch, &mut self.npcs_sprite, draw_param)?;
-        draw_interactions(ctx, &self.camera.size, &self.npcs_components, &self.current_interaction, &self.player_physics.current_focus)?;
+        render_system::draw_tiles(
+            ctx,
+            &self.camera,
+            &mut self.tiles,
+            &mut self.world_sprite_batch,
+            draw_param,
+        )?;
+        render_system::draw_world_bounds(ctx, &self.camera, &self.world_size)?;
+        render_system::draw_player(
+            ctx,
+            &self.camera,
+            &self.player_physics,
+            &mut self.player_sprite_batch,
+            &mut self.player_sprite,
+            self.frames,
+            draw_param,
+        )?;
+        render_system::draw_objects(ctx, &self.camera, &self.physics_components)?;
+        render_system::draw_npcs(
+            ctx,
+            &self.camera,
+            &self.physics_components,
+            &self.npcs_components,
+            &mut self.npcs_sprite_batch,
+            &mut self.npcs_sprite,
+            draw_param,
+        )?;
+        render_system::draw_interactions(
+            ctx,
+            &self.camera.size,
+            &self.npcs_components,
+            &self.current_interaction,
+            &self.player_physics.current_focus,
+        )?;
 
         graphics::present(ctx)?;
 
@@ -79,15 +110,14 @@ impl GameState {
     pub fn new(ctx: &mut Context) -> GameState {
         let npcs_components = Vec::new();
         let physics_components = Vec::new();
-        let player_physics = initial_player_physics();
+        let player_physics = physics_system::initial_player_physics();
         let npcs_interactions = Vec::new();
 
         let player_atlas =
             Atlas::parse_atlas_json(std::path::Path::new("src/resources/player64.json"));
         let player_sprite_batch = atlas::create_batch_sprite(ctx, "/player64.png".to_string());
 
-        let npcs_atlas =
-            Atlas::parse_atlas_json(std::path::Path::new("src/resources/npcs64.json"));
+        let npcs_atlas = Atlas::parse_atlas_json(std::path::Path::new("src/resources/npcs64.json"));
         let npcs_sprite_batch = atlas::create_batch_sprite(ctx, "/npcs64.png".to_string());
 
         let world_atlas =
@@ -129,7 +159,7 @@ impl GameState {
         let npcs = load_npcs();
         for npc_data in npcs.iter() {
             self.add_entity(
-                Some(generate_npc_physics()),
+                Some(physics_system::generate_npc_physics()),
                 Some(Npc {
                     id: npc_data.id,
                     name: npc_data.name.clone(),
@@ -153,7 +183,7 @@ impl GameState {
                 0.0,
                 graphics::Color::WHITE,
                 None,
-                None
+                None,
             ));
             self.add_entity(object_physics, None, None);
         }
@@ -172,8 +202,8 @@ impl GameState {
 }
 
 // TO DO
-// - Sprites 
-//  - Interactions boxes 
+// - Sprites
+//  - Interactions boxes
 //   - dialog box, avatar box
 //  - desks
 //  - npcs

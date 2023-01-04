@@ -1,5 +1,7 @@
-use ggez::{graphics, mint::{Point2, Vector2}};
-
+use ggez::{
+    graphics,
+    mint::{Point2, Vector2},
+};
 
 #[derive(Clone, Debug)]
 pub struct Sprite {

@@ -3,48 +3,14 @@ extern crate serde_derive;
 extern crate serde;
 extern crate serde_json;
 
+pub mod ecs;
 use ecs::{
     game_state::GameState,
     utils::constants::{DEFAULT_WINDOW_H, DEFAULT_WINDOW_W},
 };
+
 use ggez::conf::FullscreenType;
 use ggez::*;
-
-pub mod ecs {
-    pub mod components {
-        pub mod npc;
-    }
-    pub mod sprites {
-        pub mod npc_sprite;
-        pub mod player_sprite;
-        pub mod sprite;
-        pub mod tile_sprite;
-    }
-
-    pub mod systems {
-        pub mod input_system {
-            pub mod input_system;
-            pub mod interaction;
-        }
-
-        pub mod physics_system {
-            pub mod physics;
-            pub mod physics_system;
-        }
-        pub mod render_system {
-            pub mod camera;
-            pub mod render_system;
-        }
-    }
-
-    pub mod utils {
-        pub mod constants;
-        pub mod npcs_json_loader;
-    }
-
-    pub mod atlas;
-    pub mod game_state;
-}
 
 fn main() -> GameResult {
     let c = conf::Conf::new();

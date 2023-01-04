@@ -1,6 +1,11 @@
-use ggez::{Context};
-use super::super::physics_system::physics::{Physics, Position, Size, Direction};
-use super::super::super::utils::constants::{DEFAULT_CAMERA_W, DEFAULT_CAMERA_H, DEFAULT_CAMERA_SPEED, DEFAULT_CAMERA_OFFSET};
+use crate::ecs::{
+    systems::physics_system::physics::{Direction, Physics, Position, Size},
+    utils::constants::{
+        DEFAULT_CAMERA_H, DEFAULT_CAMERA_OFFSET, DEFAULT_CAMERA_SPEED, DEFAULT_CAMERA_W,
+    },
+};
+
+use ggez::Context;
 
 #[derive(Copy, Clone)]
 pub struct Camera {
@@ -34,14 +39,11 @@ impl Camera {
             Direction::Up => self.position.y -= self.speed * dt,
             Direction::Down => self.position.y += self.speed * dt,
             Direction::Left => self.position.x -= self.speed * dt,
-            Direction::Right => self.position.x += self.speed * dt
+            Direction::Right => self.position.x += self.speed * dt,
         }
     }
 
-    pub fn is_player_approaching_camera_edge(
-        &self,
-        player_physics: &Physics
-    ) -> bool {
+    pub fn is_player_approaching_camera_edge(&self, player_physics: &Physics) -> bool {
         let player_camera_position = self.world_to_screen(&player_physics.position);
         let camera_w_third = self.size.width / 3.0;
         let camera_h_third = self.size.height / 3.0;
@@ -51,10 +53,14 @@ impl Camera {
         let bottom_boundry = self.size.height - camera_h_third;
         let right_boundry = self.size.width - camera_h_third;
 
-        return (player_camera_position.x < left_boundry && player_physics.direction == Some(Direction::Left))
-            || (player_camera_position.y < top_boundry && player_physics.direction == Some(Direction::Up))
-            || (player_camera_position.x > right_boundry && player_physics.direction == Some(Direction::Right))
-            || (player_camera_position.y > bottom_boundry && player_physics.direction == Some(Direction::Down));
+        return (player_camera_position.x < left_boundry
+            && player_physics.direction == Some(Direction::Left))
+            || (player_camera_position.y < top_boundry
+                && player_physics.direction == Some(Direction::Up))
+            || (player_camera_position.x > right_boundry
+                && player_physics.direction == Some(Direction::Right))
+            || (player_camera_position.y > bottom_boundry
+                && player_physics.direction == Some(Direction::Down));
     }
 
     pub fn is_within_world_bounds(&self, world_size: &Size, direction: Direction) -> bool {
@@ -78,7 +84,7 @@ impl Camera {
     pub fn maybe_update(&mut self, ctx: &mut Context, player_physics: &Physics, world_size: &Size) {
         let should_update_camera = self.is_player_approaching_camera_edge(player_physics)
             && self.is_within_world_bounds(world_size, player_physics.direction.unwrap());
-    
+
         if should_update_camera {
             self.update_position(player_physics.direction.unwrap(), ctx);
         }
