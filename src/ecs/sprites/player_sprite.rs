@@ -1,16 +1,15 @@
-use ggez::{
-    graphics::spritebatch::SpriteBatch,
-    mint::{Point2, Vector2},
+use crate::ecs::{
+    atlas::Atlas,
+    sprites::sprite::Sprite,
+    systems::{physics_system::physics::*, render_system::camera::Camera},
 };
+
 use std::collections::HashMap;
 use strum::IntoEnumIterator;
 
-use super::super::atlas;
-use super::{
-    super::systems::{
-        physics_system::physics::*, render_system::camera::Camera,
-    },
-    sprite::Sprite,
+use ggez::{
+    graphics::spritebatch::SpriteBatch,
+    mint::{Point2, Vector2},
 };
 
 pub struct PlayerSprite {
@@ -20,14 +19,16 @@ pub struct PlayerSprite {
 }
 
 impl PlayerSprite {
-    pub fn new(atlas: &atlas::Atlas) -> Self {
+    pub fn new(atlas: &Atlas) -> Self {
         let mut idle_sprites = HashMap::new();
         let mut walking_sprites = HashMap::new();
 
         for direction in Direction::iter() {
             idle_sprites.insert(
                 direction,
-                atlas.create_sprite(&format!("player-idle-{}", Direction::to_index(direction)).to_string()),
+                atlas.create_sprite(
+                    &format!("player-idle-{}", Direction::to_index(direction)).to_string(),
+                ),
             );
         }
 

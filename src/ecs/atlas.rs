@@ -1,7 +1,11 @@
-use ggez::{Context, graphics::{self, spritebatch::SpriteBatch}};
+use crate::ecs::sprites::sprite::Sprite;
+
 use std::path::Path;
 
-use super::sprites::sprite::Sprite;
+use ggez::{
+    graphics::{self, spritebatch::SpriteBatch},
+    Context,
+};
 
 #[derive(Deserialize, Debug)]
 struct Meta {

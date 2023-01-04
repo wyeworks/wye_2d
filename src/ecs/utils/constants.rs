@@ -1,4 +1,4 @@
-use super::super::systems::physics_system::physics::Position;
+use crate::ecs::systems::physics_system::physics::Position;
 
 pub const HUMANOID_W: f32 = 30.0;
 pub const HUMANOID_H: f32 = 60.0;

@@ -29,7 +29,7 @@ impl Physics {
             color,
             direction,
             walking: false,
-            current_focus
+            current_focus,
         }
     }
 

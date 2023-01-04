@@ -1,5 +1,7 @@
-use super::physics::*;
-use crate::ecs::{utils::constants::*};
+pub mod physics;
+use physics::*;
+
+use crate::ecs::utils::constants::*;
 use ggez::{event::KeyCode, graphics, Context};
 use rand::Rng;
 
@@ -15,7 +17,7 @@ pub fn initial_player_physics() -> Physics {
         color: graphics::Color::from_rgb(0, 171, 169),
         direction: Some(Direction::Down),
         walking: false,
-        current_focus: None
+        current_focus: None,
     }
 }
 
@@ -30,7 +32,7 @@ pub fn generate_npc_physics() -> Physics {
         color: graphics::Color::from_rgb(112, 111, 211),
         direction: None,
         walking: false,
-        current_focus: None
+        current_focus: None,
     }
 }
 
@@ -87,12 +89,11 @@ pub fn update_player_physics(
             new_player_physics = new_potential_player_physics;
         }
     }
-    
+
     new_player_physics
 }
 
 fn objects_collide(a: &Physics, b: &Physics) -> bool {
-
     let collision = a.position.x - a.size.w_half() < b.position.x + b.size.w_half()
         && a.position.x + a.size.w_half() > b.position.x - b.size.w_half()
         && a.position.y - a.size.h_half() < b.position.y + b.size.h_half()
