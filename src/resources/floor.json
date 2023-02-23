@@ -12,7 +12,7 @@
  "meta": {
   "app": "https://www.aseprite.org/",
   "version": "1.2.32-x64",
-  "image": "world_atlas.png",
+  "image": "floor.png",
   "format": "RGBA8888",
   "size": { "w": 32, "h": 10 },
   "scale": "1",

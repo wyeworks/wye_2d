@@ -12,6 +12,7 @@ use ggez::*;
 
 pub mod ecs {
     pub mod components {
+        pub mod desk;
         pub mod npc;
     }
     pub mod sprites {
@@ -19,6 +20,8 @@ pub mod ecs {
         pub mod player_sprite;
         pub mod sprite;
         pub mod tile_sprite;
+        pub mod office_sprite;
+        pub mod draw;
     }
 
     pub mod systems {
@@ -54,12 +57,12 @@ fn main() -> GameResult {
         height: DEFAULT_WINDOW_H,
         maximized: false,
         fullscreen_type: FullscreenType::Windowed,
-        borderless: false,
+        borderless: true,
         min_width: 0.0,
         min_height: 0.0,
         max_width: 0.0,
         max_height: 0.0,
-        resizable: false,
+        resizable: true,
         visible: true,
         resize_on_scale_factor_change: true,
     };
