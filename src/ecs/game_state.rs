@@ -111,14 +111,6 @@ impl ggez::event::EventHandler<GameError> for GameState {
             }
         }
 
-        draw_interactions(
-            ctx,
-            &self.camera.size,
-            &self.npcs_components,
-            &self.current_interaction,
-            &self.player_physics.current_focus,
-        )?;
-
         graphics::present(ctx)?;
 
         self.frames += 1;

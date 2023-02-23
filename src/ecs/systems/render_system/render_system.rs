@@ -84,37 +84,6 @@ pub fn draw_npcs(
     Ok(())
 }
 
-pub fn draw_objects(
-    ctx: &mut Context,
-    camera: &Camera,
-    physics_components: &Vec<Option<Physics>>,
-) -> GameResult {
-    for object in physics_components {
-        match object {
-            Some(physics) => draw_object(ctx, &physics, camera)?,
-            None => (),
-        }
-    }
-
-    Ok(())
-}
-
-pub fn draw_object(ctx: &mut Context, physics: &Physics, camera: &Camera) -> GameResult {
-    let position_in_camera: Position = camera.world_to_screen(&physics.position);
-    let rect = graphics::Rect::new(
-        position_in_camera.x - physics.size.w_half(),
-        position_in_camera.y - physics.size.h_half(),
-        physics.size.width,
-        physics.size.height,
-    );
-
-    let rect_mesh = graphics::Mesh::new_rectangle(ctx, DrawMode::fill(), rect, physics.color)?;
-
-    graphics::draw(ctx, &rect_mesh, DrawParam::default())?;
-
-    Ok(())
-}
-
 pub fn draw_sprite<T: Draw>(
     ctx: &mut Context,
     camera: &Camera,
